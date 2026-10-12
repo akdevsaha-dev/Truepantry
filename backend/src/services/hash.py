@@ -6,5 +6,6 @@ def get_hashed_password(password: str) -> str:
     return hashedPassword
 
 
-# for verification
-# is_valid = password_hash.verify(entered_password, hashed_password)
+def check_password_valid(password: str, hashed_password: str) -> bool:
+    is_valid = PasswordHash.recommended().verify(password, hashed_password)
+    return is_valid
