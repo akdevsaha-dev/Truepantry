@@ -1,15 +1,16 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Response
 from src.db.supabase import get_supabase_client
 from src.validation.auth import SigninValidation
 from src.services.hash import check_password_valid
 from postgrest.exceptions import APIError
+from src.services.jwt import create_access_token, set_auth_cookie
 
 router = APIRouter(prefix="/auth/signin", tags=["Signin"])
 supabase = get_supabase_client()
 
 
 @router.post("/")
-def signin(data: SigninValidation):
+def signin(data: SigninValidation, response: Response):
     try:
         user_exists = (
             supabase.table("users")
@@ -28,6 +29,8 @@ def signin(data: SigninValidation):
         if not is_password_valid:
             raise HTTPException(status_code=401, detail="Invalid email or password")
 
+        token = create_access_token(user_id=user["id"], email=user["email"])
+        set_auth_cookie(response, token)
         return {
             "message": "Signin successful",
             "user": {"id": user["id"], "email": user["email"]},

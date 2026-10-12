@@ -1,8 +1,11 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Response
+from src.services.jwt import clear_auth_cookie
 
 router = APIRouter(prefix="/auth/logout", tags=["Logout"])
 
 
 @router.get("/")
-def logout():
-    return {"message": "logout route"}
+def logout(response: Response):
+    clear_auth_cookie(response)
+    return {"message": "Logged out successfully!"}
+    
