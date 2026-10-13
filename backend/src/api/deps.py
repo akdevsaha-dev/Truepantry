@@ -34,7 +34,7 @@ def get_current_user(req: Request) -> dict:
 
     res = (
         supabase.table("users")
-        .select("id, email, username, created_at")
+        .select("id, email, username, created_at, is_onboarded")
         .eq("id", user_id)
         .limit(1)
         .execute()
