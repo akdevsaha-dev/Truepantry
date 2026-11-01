@@ -44,8 +44,51 @@ The foundational interaction cycle in TruePantry is the **Scan $\rightarrow$ Ana
              Allergies)            Protein, Sugar)       Totals & Budget)
 ```
 
-### 1. Instant Scan
-The user points their smartphone camera at the barcode or product packaging. TruePantry identifies the exact product, pack size, nutrition panel, and full ingredient list.
+### 1. Instant Hands-Free Scan (Zero-Click Ambient Vision)
+Shoppers do **not** need to press a capture button or snap photos manually. They simply walk the aisle holding up their phone. The engine runs a **Cascaded 3-Tier Recognition Pipeline**:
+
+```
+                       ┌────────────────────────┐
+                       │   Camera Active (App)  │
+                       └───────────┬────────────┘
+                                   │
+                      [ Tier 1: Barcode Detection ]
+                                   │
+                      Barcode found in frame?
+                             ├── YES ───────────────> [Instant SKU Lookup]
+                             │                                    │
+                             └── NO                               │
+                                  │                               │
+                    [ Tier 2: On-Device MediaPipe ]               │
+                                  │                               │
+                    Food detected with >= 85%?                    │
+                             ├── YES ───────────────> [Send Detected Food Label]
+                             │  (e.g., "Apple" - $0 cost)         │
+                             │                                    │
+                             └── NO / Ambiguous (<85%)            │
+                                  │                               │
+                  [ Tier 3: Cloud Vision / Gemini ]               │
+                                  │                               │
+                     Auto-grab stable video frame ────────────────┤
+                                                                  │
+                                                                  ▼
+                                                    ┌─────────────────────────────┐
+                                                    │    Backend LLM Evaluation   │
+                                                    │   (Item + Profile + Goals)  │
+                                                    └──────────────┬──────────────┘
+                                                                  │
+                                                                  ▼
+                                                    ┌─────────────────────────────┐
+                                                    │   Real-Time Voice Stream    │
+                                                    │  (Speaks verdict into ear)  │
+                                                    └─────────────────────────────┘
+```
+
+#### Hands-Free Interaction Engine Rules:
+- **Dwell / Stability Trigger (~400–600ms)**: When the camera focuses steadily on an item for ~500ms, the evaluation triggers automatically without requiring user touch.
+- **Silent Frame Capture**: If an unbarcoded item is ambiguous for MediaPipe (Tier 3), the app silently extracts a video frame in the background and sends it to the cloud vision API.
+- **Deduplication / Cooldown**: Prevents spamming repetitive API calls while the user is still looking at the same item.
+- **Audio Interruption on Move**: If the user swings the camera from a soda to a bottle of water, the active speech synthesis is immediately aborted (`speechSynthesis.cancel()`) and the new item's verdict begins speaking in real time.
 
 ### 2. Multi-Context Evaluation Engine
 TruePantry never assesses a product in isolation. The intelligence engine cross-references:
