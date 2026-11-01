@@ -18,7 +18,7 @@ const spaceMono = Space_Mono({
 export const metadata: Metadata = {
   title: "truePantry — Clearer grocery decisions from every label",
   description:
-    "Scan exact grocery products, check ingredients and allergens, compare unit prices, and see how each item fits your household and shopping goal.",
+    "Scan exact grocery products, check ingredients and nutrition, compare unit prices, and see how each item fits your household and shopping goal.",
 };
 
 export const viewport: Viewport = {

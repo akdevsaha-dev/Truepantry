@@ -47,8 +47,6 @@ export interface OnboardingGoalData {
 export interface OnboardingPreferencesData {
   diet: string;
   other_diet?: string | null;
-  allergies: string[];
-  other_allergy?: string | null;
 }
 
 export interface OnboardingStatusResponse {
@@ -73,9 +71,6 @@ export interface PreferencesStepPayload {
   diet: string;
   other_diet?: string | null;
   otherDiet?: string | null;
-  allergies: string[];
-  other_allergy?: string | null;
-  otherAllergy?: string | null;
 }
 
 export interface CompleteOnboardingResponse {

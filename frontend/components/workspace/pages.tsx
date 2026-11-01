@@ -404,7 +404,7 @@ export function Chat() {
             : "For a simple breakfast idea, try oats with yogurt and fruit. Add the oats and yogurt from the sample products to build your basket around it.";
       else if (/protein/i.test(text))
         answer =
-          "For this sample basket, Greek yogurt and chickpeas are easy starting points for a protein-focused meal. Try yogurt at breakfast or chickpeas tossed into a lunch bowl. Check the actual package for serving sizes, nutrition, and allergens.";
+          "For this sample basket, Greek yogurt and chickpeas are easy starting points for a protein-focused meal. Try yogurt at breakfast or chickpeas tossed into a lunch bowl. Check the actual package for serving sizes and nutrition.";
       else if (/budget|save|cost|less/i.test(text))
         answer =
           "A little basket check can go a long way: compare unit prices, choose a pack size you’ll finish, and plan more than one meal around each staple. Oats and chickpeas are versatile places to start. The prices here are samples, so compare the shelf labels in store.";

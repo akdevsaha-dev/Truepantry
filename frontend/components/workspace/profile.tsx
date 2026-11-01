@@ -195,7 +195,7 @@ function ProfileForm({ initial }: { initial: ProfileData }) {
             </div>
           </div>
           <div className="mt-4 pt-3 border-t border-[#254b36]/10 flex items-center justify-between text-xs">
-            <span className="text-[#636c62]">Detailed dietary and allergen settings</span>
+            <span className="text-[#636c62]">Detailed dietary settings</span>
             <Link href="/onboarding" className="font-semibold text-[#254b36] hover:underline">
               Open onboarding preferences ↗
             </Link>

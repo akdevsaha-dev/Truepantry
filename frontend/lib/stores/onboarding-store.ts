@@ -10,8 +10,6 @@ export interface OnboardingFormState {
   goal: string;
   diet: string;
   otherDiet: string;
-  allergies: string[];
-  otherAllergy: string;
 }
 
 export type OnboardingFormField = keyof OnboardingFormState;
@@ -27,7 +25,6 @@ interface OnboardingStoreState {
 
   fetchStatus: () => Promise<void>;
   setField: <K extends OnboardingFormField>(field: K, value: OnboardingFormState[K]) => void;
-  toggleAllergen: (value: string) => void;
   goToStep: (step: number) => void;
   saveProfileStep: () => Promise<boolean>;
   saveGoalStep: () => Promise<boolean>;
@@ -44,8 +41,6 @@ const initialProfile: OnboardingFormState = {
   goal: "",
   diet: "",
   otherDiet: "",
-  allergies: [],
-  otherAllergy: "",
 };
 
 export const useOnboardingStore = create<OnboardingStoreState>((set, get) => ({
@@ -73,10 +68,6 @@ export const useOnboardingStore = create<OnboardingStoreState>((set, get) => ({
           goal: data.goal?.goal || state.profile.goal,
           diet: data.preferences?.diet || state.profile.diet,
           otherDiet: data.preferences?.other_diet || state.profile.otherDiet,
-          allergies: data.preferences?.allergies && data.preferences.allergies.length > 0
-            ? data.preferences.allergies
-            : state.profile.allergies,
-          otherAllergy: data.preferences?.other_allergy || state.profile.otherAllergy,
         },
       }));
     } catch {
@@ -90,26 +81,6 @@ export const useOnboardingStore = create<OnboardingStoreState>((set, get) => ({
       profile: { ...state.profile, [field]: value },
       error: null,
     }));
-  },
-
-  toggleAllergen: (value: string) => {
-    set((state) => {
-      const current = state.profile.allergies;
-      let next: string[];
-
-      if (value === "None") {
-        next = current.includes("None") ? [] : ["None"];
-      } else if (current.includes(value)) {
-        next = current.filter((item) => item !== value);
-      } else {
-        next = [...current.filter((item) => item !== "None"), value];
-      }
-
-      return {
-        profile: { ...state.profile, allergies: next },
-        error: null,
-      };
-    });
   },
 
   goToStep: (next: number) => {
@@ -176,9 +147,6 @@ export const useOnboardingStore = create<OnboardingStoreState>((set, get) => ({
         diet: profile.diet,
         other_diet: profile.diet === "Other" ? profile.otherDiet.trim() : null,
         otherDiet: profile.diet === "Other" ? profile.otherDiet.trim() : null,
-        allergies: profile.allergies,
-        other_allergy: profile.allergies.includes("Other") ? profile.otherAllergy.trim() : null,
-        otherAllergy: profile.allergies.includes("Other") ? profile.otherAllergy.trim() : null,
       });
 
       set({

@@ -31,8 +31,6 @@ def update_preferences_step(
             "user_id": user_id,
             "diet": data.diet,
             "other_diet": data.other_diet,
-            "allergies": data.allergies,
-            "other_allergy": data.other_allergy,
             "onboarding_step": next_step,
         }
 
@@ -46,8 +44,6 @@ def update_preferences_step(
             "preferences": {
                 "diet": saved.get("diet"),
                 "other_diet": saved.get("other_diet"),
-                "allergies": saved.get("allergies"),
-                "other_allergy": saved.get("other_allergy"),
             },
         }
 

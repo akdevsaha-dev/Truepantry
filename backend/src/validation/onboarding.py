@@ -1,5 +1,5 @@
 from datetime import date
-from typing import List, Optional
+from typing import Optional
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 
@@ -43,8 +43,6 @@ class OnboardingPreferencesValidation(BaseModel):
 
     diet: str = Field(min_length=1, max_length=50)
     other_diet: Optional[str] = Field(default=None, alias="otherDiet", max_length=120)
-    allergies: List[str] = Field(default_factory=list)
-    other_allergy: Optional[str] = Field(default=None, alias="otherAllergy", max_length=200)
 
     @field_validator("other_diet")
     @classmethod
@@ -55,19 +53,8 @@ class OnboardingPreferencesValidation(BaseModel):
                 return None
         return v
 
-    @field_validator("other_allergy")
-    @classmethod
-    def validate_other_allergy(cls, v: Optional[str]) -> Optional[str]:
-        if v is not None:
-            v = v.strip()
-            if not v:
-                return None
-        return v
-
     @model_validator(mode="after")
     def validate_other_fields(self):
         if self.diet.lower() == "other" and not self.other_diet:
             raise ValueError("Please specify your dietary preference when 'Other' is selected")
-        if any(a.lower() == "other" for a in self.allergies) and not self.other_allergy:
-            raise ValueError("Please specify other allergies when 'Other' is selected")
         return self

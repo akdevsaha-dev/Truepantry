@@ -57,7 +57,7 @@ The onboarding flow (`/onboarding`) connects directly to backend endpoints:
 1. **Status Hydration** (`GET /api/v1/onboarding/`): Loads previously saved profile details, goals, preferences, and current onboarding step when authenticated.
 2. **Profile Step** (`PATCH /api/v1/onboarding/profile/`): Saves date of birth, height (cm), and gender.
 3. **Goal Step** (`PATCH /api/v1/onboarding/goals/`): Saves primary wellness and shopping goal (`balance`, `energy`, `weight`).
-4. **Preferences Step** (`PATCH /api/v1/onboarding/preferences/`): Saves dietary preferences (with custom input) and allergen selections.
+4. **Preferences Step** (`PATCH /api/v1/onboarding/preferences/`): Saves dietary preferences (with custom input).
 5. **Completion** (`POST /api/v1/onboarding/complete/`): Finalizes onboarding, flags `is_onboarded: true` on the account, and transitions smoothly to the dashboard.
 keyboard focus, and inline validation are supported.
 

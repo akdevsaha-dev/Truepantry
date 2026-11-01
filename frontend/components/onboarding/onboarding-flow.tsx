@@ -21,20 +21,6 @@ const goals = [
   ["weight", "Manage my weight", "Make more intentional choices, at my own pace."],
 ];
 
-const allergens = [
-  "Milk",
-  "Eggs",
-  "Peanuts",
-  "Tree nuts",
-  "Soy",
-  "Wheat",
-  "Fish",
-  "Shellfish",
-  "Sesame",
-  "Other",
-  "None",
-];
-
 const diets = [
   "Vegetarian",
   "Non-vegetarian",
@@ -136,7 +122,6 @@ export function OnboardingFlow() {
     error: apiError,
     fetchStatus,
     setField,
-    toggleAllergen,
     goToStep,
     saveProfileStep,
     saveGoalStep,
@@ -220,12 +205,6 @@ export function OnboardingFlow() {
       }
       if (profile.diet === "Other" && !profile.otherDiet.trim()) {
         next.otherDiet = "Tell us your dietary preference.";
-      }
-      if (!profile.allergies.length) {
-        next.allergies = "Select any allergies, or choose None.";
-      }
-      if (profile.allergies.includes("Other") && !profile.otherAllergy.trim()) {
-        next.otherAllergy = "Tell us which other allergies to include.";
       }
     }
 
@@ -424,14 +403,6 @@ export function OnboardingFlow() {
                         "Dietary preference",
                         profile.diet === "Other" ? profile.otherDiet : profile.diet || "None",
                       ],
-                      [
-                        "Allergies",
-                        profile.allergies.length > 0
-                          ? profile.allergies
-                              .map((val) => (val === "Other" ? profile.otherAllergy : val))
-                              .join(", ")
-                          : "None",
-                      ],
                     ].map(([label, value]) => (
                       <div key={label}>
                         <dt>{label}</dt>
@@ -625,54 +596,6 @@ export function OnboardingFlow() {
                               {...fieldProps("otherDiet")}
                             />
                             {renderError("otherDiet")}
-                          </div>
-                        )}
-
-                        <fieldset className={styles.allergies}>
-                          <legend>Any food allergies?</legend>
-                          <p>Select all that apply.</p>
-                          <div className={styles.chips}>
-                            {allergens.map((val) => (
-                              <label
-                                key={val}
-                                className={styles.chip}
-                                data-selected={profile.allergies.includes(val)}
-                              >
-                                <input
-                                type="checkbox"
-                                name="allergies"
-                                value={val}
-                                checked={profile.allergies.includes(val)}
-                                onChange={() => toggleAllergen(val)}
-                                {...fieldProps("allergies")}
-                              />
-                                <span aria-hidden="true">
-                                  {profile.allergies.includes(val) ? (
-                                    <Icon name="check" size={14} />
-                                  ) : (
-                                    "+"
-                                  )}
-                                </span>
-                                {val === "None" ? "None of these" : val}
-                              </label>
-                            ))}
-                          </div>
-                          {renderError("allergies")}
-                        </fieldset>
-
-                        {profile.allergies.includes("Other") && (
-                          <div className={styles.field}>
-                            <label htmlFor="otherAllergy">Other food allergies</label>
-                            <input
-                              id="otherAllergy"
-                              name="otherAllergy"
-                              placeholder="e.g. Mustard, celery"
-                              maxLength={200}
-                              value={profile.otherAllergy}
-                              onChange={(event) => update("otherAllergy", event.target.value)}
-                              {...fieldProps("otherAllergy")}
-                            />
-                            {renderError("otherAllergy")}
                           </div>
                         )}
                       </div>

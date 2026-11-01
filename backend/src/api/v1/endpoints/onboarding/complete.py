@@ -36,8 +36,8 @@ def complete_onboarding(current_user: dict = Depends(get_current_user)):
             missing_fields.append("profile details (dob, height, gender)")
         if not profile.get("goal"):
             missing_fields.append("goal")
-        if not profile.get("diet") or not profile.get("allergies"):
-            missing_fields.append("plate preferences (diet, allergies)")
+        if not profile.get("diet"):
+            missing_fields.append("plate preferences (diet)")
 
         if missing_fields:
             raise HTTPException(

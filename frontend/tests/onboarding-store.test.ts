@@ -17,7 +17,6 @@ test("onboarding store initializes with clean state", () => {
   assert.equal(state.isSaving, false);
   assert.equal(state.error, null);
   assert.equal(state.profile.dob, "");
-  assert.deepEqual(state.profile.allergies, []);
 });
 
 test("onboarding setField updates profile and clears error", () => {
@@ -31,30 +30,6 @@ test("onboarding setField updates profile and clears error", () => {
   assert.equal(state.profile.height, "175");
   assert.equal(state.profile.gender, "Woman");
   assert.equal(state.error, null);
-});
-
-test("onboarding toggleAllergen handles None exclusivity correctly", () => {
-  const store = useOnboardingStore.getState();
-
-  // Add Milk
-  store.toggleAllergen("Milk");
-  assert.deepEqual(useOnboardingStore.getState().profile.allergies, ["Milk"]);
-
-  // Add Eggs
-  store.toggleAllergen("Eggs");
-  assert.deepEqual(useOnboardingStore.getState().profile.allergies, ["Milk", "Eggs"]);
-
-  // Toggle "None": should clear Milk and Eggs
-  store.toggleAllergen("None");
-  assert.deepEqual(useOnboardingStore.getState().profile.allergies, ["None"]);
-
-  // Adding Soy should remove "None"
-  store.toggleAllergen("Soy");
-  assert.deepEqual(useOnboardingStore.getState().profile.allergies, ["Soy"]);
-
-  // Toggle Soy again to remove it
-  store.toggleAllergen("Soy");
-  assert.deepEqual(useOnboardingStore.getState().profile.allergies, []);
 });
 
 test("onboarding goToStep adjusts step and direction", () => {
@@ -131,8 +106,6 @@ test("onboarding savePreferencesStep invokes backend and advances to review", as
   try {
     useOnboardingStore.getState().setField("diet", "Other");
     useOnboardingStore.getState().setField("otherDiet", "Gluten-free plant based");
-    useOnboardingStore.getState().setField("allergies", ["Peanuts", "Other"]);
-    useOnboardingStore.getState().setField("otherAllergy", "Strawberries");
 
     const success = await useOnboardingStore.getState().savePreferencesStep();
 
@@ -141,9 +114,6 @@ test("onboarding savePreferencesStep invokes backend and advances to review", as
       diet: "Other",
       other_diet: "Gluten-free plant based",
       otherDiet: "Gluten-free plant based",
-      allergies: ["Peanuts", "Other"],
-      other_allergy: "Strawberries",
-      otherAllergy: "Strawberries",
     });
     assert.equal(useOnboardingStore.getState().step, 3);
   } finally {
@@ -193,8 +163,6 @@ test("onboarding fetchStatus hydrates existing backend data", async () => {
     preferences: {
       diet: "Vegetarian",
       other_diet: null,
-      allergies: ["Milk", "Wheat"],
-      other_allergy: null,
     },
   });
 
@@ -209,7 +177,6 @@ test("onboarding fetchStatus hydrates existing backend data", async () => {
     assert.equal(state.profile.gender, "Woman");
     assert.equal(state.profile.goal, "balance");
     assert.equal(state.profile.diet, "Vegetarian");
-    assert.deepEqual(state.profile.allergies, ["Milk", "Wheat"]);
   } finally {
     onboardingApi.getStatus = originalGetStatus;
   }

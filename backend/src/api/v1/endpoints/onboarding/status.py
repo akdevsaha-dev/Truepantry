@@ -55,8 +55,6 @@ def get_onboarding(current_user: dict = Depends(get_current_user)):
                 {
                     "diet": profile.get("diet"),
                     "other_diet": profile.get("other_diet"),
-                    "allergies": profile.get("allergies") or [],
-                    "other_allergy": profile.get("other_allergy"),
                 }
                 if has_preferences
                 else None
