@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { createContext, useContext, useEffect, useRef, useState } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
 import {
   ArrowUpRight,
   CaretRight,
@@ -12,8 +12,6 @@ import {
   Scan,
   ShoppingBag,
   Sparkle,
-  X,
-  Camera,
   Minus,
   Plus,
   UserCircle,
@@ -22,6 +20,7 @@ import { useAuthStore, useOnboardingStore } from '@/lib/stores';
 import { BrandLogo } from '@/components/ui/brand-logo';
 import type { User } from '@/lib/api/types';
 import { products, type Product } from './mock-data';
+import { Scanner } from './scanner';
 import s from './workspace.module.css';
 
 export type ProfileData = { name: string; email: string; goal: string; diet: string };
@@ -279,116 +278,5 @@ export function Workspace({ children }: { children: React.ReactNode }) {
         {scanning && <Scanner close={() => setScanning(false)} />}
       </div>
     </Context.Provider>
-  );
-}
-
-function Scanner({ close }: { close: () => void }) {
-  const dialog = useRef<HTMLDialogElement>(null);
-  const video = useRef<HTMLVideoElement>(null);
-  const stream = useRef<MediaStream | null>(null);
-  const alive = useRef(true);
-  const [status, setStatus] = useState('Your camera is only used while this window is open.');
-  const [started, setStarted] = useState(false);
-  const [sample, setSample] = useState(false);
-  const { change, toast } = useShop();
-
-  useEffect(() => {
-    alive.current = true;
-    dialog.current?.showModal();
-    const previous = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      alive.current = false;
-      stream.current?.getTracks().forEach((t) => t.stop());
-      document.body.style.overflow = previous;
-    };
-  }, []);
-
-  async function camera() {
-    setStarted(true);
-    setStatus('Waiting for camera permission…');
-    try {
-      if (!navigator.mediaDevices?.getUserMedia) throw new Error('unavailable');
-      const media = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment' },
-        audio: false,
-      });
-      if (!alive.current) {
-        media.getTracks().forEach((t) => t.stop());
-        return;
-      }
-      stream.current = media;
-      if (video.current) video.current.srcObject = media;
-      setStatus('Camera ready. Product recognition is coming soon; try a sample below.');
-    } catch {
-      if (alive.current) {
-        setStarted(false);
-        setStatus('Camera unavailable. Allow camera access in your browser, or try the sample scan.');
-      }
-    }
-  }
-
-  return (
-    <dialog
-      ref={dialog}
-      className={s.dialog}
-      aria-labelledby="scanner-title"
-      onCancel={close}
-      onClick={(e) => {
-        if (e.target === e.currentTarget) close();
-      }}
-    >
-      <div className={s.dialogHeader}>
-        <span className={s.eyebrow}>A LITTLE LABEL CLARITY</span>
-        <button className={s.iconButton} onClick={close} aria-label="Close scanner">
-          <X size={20} />
-        </button>
-      </div>
-      <h2 id="scanner-title">{sample ? 'Meet your next good pick.' : 'What’s in your hand?'}</h2>
-      <p>{sample ? 'Sample product · illustrative nutrition and price' : 'Point your camera at a product label or barcode.'}</p>
-      {sample ? (
-        <>
-          <ProductArt product={products[0]} />
-          <h3>Greek yogurt</h3>
-          <p>18 g protein per sample serving · $4.50</p>
-          <button
-            className={s.primary}
-            onClick={() => {
-              change('yogurt', 1);
-              toast('Greek yogurt added to your cart');
-              close();
-            }}
-          >
-            Add to my cart <Plus size={18} />
-          </button>
-        </>
-      ) : (
-        <>
-          <div className={s.cameraView}>
-            <video ref={video} autoPlay playsInline muted />
-            <div className={s.scanFrame}>
-              <Scan size={58} weight="thin" />
-            </div>
-          </div>
-          <p role="status" className={s.cameraStatus}>
-            {status}
-          </p>
-          <button className={s.primary} onClick={camera} disabled={started}>
-            <Camera size={18} />
-            {started ? 'Camera session open' : 'Open camera'}
-          </button>
-          <button
-            className={s.sampleButton}
-            onClick={() => {
-              alive.current = false;
-              stream.current?.getTracks().forEach((t) => t.stop());
-              setSample(true);
-            }}
-          >
-            Try a sample scan <ArrowUpRight size={16} />
-          </button>
-        </>
-      )}
-    </dialog>
   );
 }
