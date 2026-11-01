@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from src.api.v1.endpoints import health
+from src.api.v1.endpoints import evaluate, health, recipes
 from src.api.v1.endpoints.auth import logout, me, signin, signup
 from src.api.v1.endpoints.onboarding import (
     complete as onboarding_complete,
@@ -25,3 +25,9 @@ api_router.include_router(onboarding_profile.router)
 api_router.include_router(onboarding_goals.router)
 api_router.include_router(onboarding_preferences.router)
 api_router.include_router(onboarding_complete.router)
+
+# Scanning
+api_router.include_router(evaluate.router)
+
+# Recipes
+api_router.include_router(recipes.router)
