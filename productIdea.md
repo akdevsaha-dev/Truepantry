@@ -47,66 +47,82 @@ The foundational interaction cycle in TruePantry is the **Ambient Scan $\rightar
 
 ---
 
-## 4. Hands-Free, Zero-Click Vision Engine (Cascaded 3-Tier Pipeline)
+## 4. Hands-Free Vision Engine (Barcode-First with Vision Fallback)
 
-TruePantry requires **no shutter buttons, no tapping to capture, and no manual photo taking**. The user opens the scanner and points their camera while walking. 
+TruePantry requires **no shutter buttons and no manual photo taking**. The user opens the scanner and points their camera at an item. The only optional tap is a **No barcode** shortcut for loose produce.
 
-To achieve sub-second speed, 30+ FPS responsiveness, and near-zero server API costs, the vision system operates as a **Cascaded 3-Tier Recognition Pipeline**:
+To keep latency low, data exact, and cloud costs near zero, recognition is **barcode-first with a timed fallback to cloud vision**:
 
 ```
-                          ┌────────────────────────┐
-                          │   Camera Active (App)  │
-                          └───────────┬────────────┘
-                                      │
-                         [ Tier 1: Barcode Scan ]
-                                      │
-                         Barcode found in frame?
-                                ├── YES ───────────────> [Lookup Exact SKU Database]
-                                │                                     │
-                                └── NO                                │
-                                     │                                │
-                       [ Tier 2: On-Device MediaPipe ]                │
-                                     │                                │
-                       Food detected with >= 85%?                     │
-                                ├── YES ───────────────> [Send Detected Food Label]
-                                │  (e.g., "Apple" - $0 cost)          │
-                                │                                     │
-                                └── NO / Ambiguous (<85%)             │
-                                     │                                │
-                     [ Tier 3: Cloud Vision / Gemini ]                │
-                                     │                                │
-                        Auto-capture stable frame ────────────────────┤
-                                                                      │
-                                                                      ▼
-                                                       ┌─────────────────────────────┐
-                                                       │    Backend LLM Evaluation   │
-                                                       │   (Item + Profile + Goals)  │
-                                                       └──────────────┬──────────────┘
-                                                                      │
-                                                                      ▼
-                                                       ┌─────────────────────────────┐
-                                                       │   Real-Time Voice Stream    │
-                                                       │  (Speaks verdict into ear)  │
-                                                       └─────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────┐
+│ Camera active · frames sampled at 5–10 fps · ring buffer of recent   │
+│ frames · blur/stability gate (item steady in frame for ~500ms)       │
+└──────────────────────────────────┬───────────────────────────────────┘
+                                   │
+                  [ Tier 1: On-Device Barcode Scan ]
+                  (runs continuously, ZXing-wasm)
+                                   │
+          ┌──── barcode found ─────┴──── no barcode after ~2s steady ────┐
+          │                             (or user taps "No barcode")      │
+          ▼                                                              ▼
+  Exact SKU lookup                                    "Hold the item steady"
+  (TruePantry DB)                                                        │
+          │ miss                                     Send sharpest buffered frame
+          ▼                                                              │
+  Open Food Facts lookup                             [ Tier 2: Gemini Vision ]
+          │ miss ─────────────────────────────────►  identify → structured JSON
+          │                                         {name, brand, is_packaged,
+          │                                          confidence}
+          │                                                              │
+          │       (barcode appears mid-call → cancel Gemini, use barcode)│
+          │                                                              │
+          │                     packaged? → brand+name → Open Food Facts │
+          │                     low confidence? → "Is this X?" / rescan  │
+          ▼                                                              ▼
+   ┌───────────────────────────────────────────────────────────────────────┐
+   │ Deterministic allergen & diet rules (code, not LLM) → hard override   │
+   └───────────────────────────────────┬───────────────────────────────────┘
+                                       ▼
+   ┌───────────────────────────────────────────────────────────────────────┐
+   │ LLM verdict (item + profile + goal + cart), streamed token-by-token   │
+   └───────────────────────────────────┬───────────────────────────────────┘
+                                       ▼
+   ┌───────────────────────────────────────────────────────────────────────┐
+   │ Streaming TTS, spoken sentence-by-sentence · cancelled on item change │
+   └───────────────────────────────────────────────────────────────────────┘
 ```
 
-### The Three Recognition Tiers
+### The Recognition Tiers
 
-1. **Tier 1: On-Device Barcode Detection (Fastest & Free)**
+1. **Tier 1: On-Device Barcode Scan (Fastest, Exact & Free)**
    - **Target**: Packaged supermarket goods (cereals, yogurt tubs, pasta, canned items).
-   - **Mechanism**: The client-side camera feed decodes UPC/EAN barcodes in **~10ms** using browser-native `BarcodeDetector` or `@zxing/library`.
-   - **Cost & Bandwidth**: $0 cloud cost. Sends only a 12-digit string to the backend.
+   - **Mechanism**: Runs continuously on the camera feed using `zxing-wasm` (the native `BarcodeDetector` is used where available; it is not supported on Safari/iOS).
+   - **Resolution chain**: TruePantry SKU DB → Open Food Facts → (miss) fall through to Tier 2 using the package image.
+   - **Cost & Bandwidth**: $0 cloud cost. Sends only the barcode string to the backend.
 
-2. **Tier 2: On-Device MediaPipe Vision $\ge$ 85% (Loose Produce & Zero Cost)**
-   - **Target**: Standard unbarcoded produce (apples, bananas, oranges, carrots, broccoli).
-   - **Mechanism**: Google MediaPipe (`@mediapipe/tasks-vision`) runs directly on the user's device GPU/Wasm.
-   - **Confidence Threshold**: If an item is recognized with $\ge 85\%$ confidence, the frontend sends only the detected food label (e.g. `{"item_name": "apple", "confidence": 0.91}`) to the backend. No image is uploaded.
-   - **Cost & Latency**: $0 cloud cost, runs at **15–25ms**.
+2. **Tier 2: Gemini Vision Fallback (Produce, Fresh & Unreadable Items)**
+   - **Trigger**: No barcode decoded within **~2s** of the item being held steady, **or** the user taps **No barcode**. The UI prompts *"No barcode? Hold the item steady."*
+   - **Frame selection**: The client keeps a small buffer of recent frames and sends the **sharpest** one, never just the latest.
+   - **Structured output**: Gemini returns `{ "name", "brand", "is_packaged", "confidence" }`. Packaged items are re-resolved via Open Food Facts (`brand + name`) so nutrition comes from real data, not model estimates.
+   - **Barcode still wins**: The barcode scanner keeps running during the Gemini call. If a barcode is read, the call is cancelled and Tier 1 is used.
+   - **Low confidence**: The app asks *"Is this X?"* or prompts a rescan. It never gives a confident verdict on a guess.
+   - **Guardrails**: Debounce and skip items just identified, per-session rate limits, and perceptual-hash caching of results.
 
-3. **Tier 3: Cloud Vision / Gemini Vision Fallback (Ambiguous & Complex Items)**
-   - **Target**: Unbarcoded items where MediaPipe confidence is $< 85\%$ (e.g., butcher cuts of chicken/beef, bakery pastries, prepared hot foods, exotic fruits).
-   - **Mechanism**: The app silently extracts a clean video frame from the canvas buffer and transmits it to the backend Vision model (e.g., Gemini Vision).
-   - **Hands-Free**: The user **never clicks a button**; the app captures the frame automatically upon detecting a steady subject.
+3. **Deferred: On-Device Produce Classifier**
+   - Stock MediaPipe models only cover about 10 food classes, so no on-device produce tier ships in the MVP.
+   - Every Gemini call is logged with its result. When the logs show a stable set of common items (e.g., the top 50–100 produce items), train a custom image classifier with MediaPipe Model Maker using that data and insert it ahead of Gemini. The confidence threshold is set from a validation set (target ≥95% precision) with multi-frame voting.
+
+### Safety & Evaluation Order
+
+- **Allergen and diet checks are deterministic code**, run against ingredient and allergen fields before any LLM call. A match is a hard override that the LLM cannot soften.
+- **The LLM verdict is streamed** token-by-token into TTS, sentence by sentence, so the first words play without waiting for the full response.
+
+### Metrics
+
+- Share of scans resolved by barcode vs. vision.
+- p50/p95 time to first spoken word, per path.
+- Cloud cost per shopping trip.
+- Vision-call frequency per item class (decides when the on-device classifier is worth building).
 
 ### Essential Zero-Click Runtime Rules
 
@@ -187,10 +203,10 @@ Verdicts are spoken in concise, conversational sentences (under 2–3 sentences)
 
 | Layer | Technologies | Responsibilities |
 | :--- | :--- | :--- |
-| **Frontend** | Next.js 16 (App Router), TypeScript, Tailwind CSS, Zustand, GSAP | Mobile-friendly responsive UI, camera stream processing, MediaPipe/Barcode on-device detection, audio synthesis & interruption |
+| **Frontend** | Next.js 16 (App Router), TypeScript, Tailwind CSS, Zustand, GSAP | Mobile-friendly responsive UI, camera stream processing, on-device barcode scanning, frame buffering & quality gating, audio synthesis & interruption |
 | **Backend API** | FastAPI (Python 3.12, UV package manager), Pydantic v2 | High-performance REST endpoints for auth, onboarding, profile updates, product resolution, and recommendation algorithms |
 | **Database & Auth** | Supabase (PostgreSQL), Argon2, Secure JWT Cookies | Persistent user accounts, biometrics, saved preferences, scan histories, and session management |
-| **Vision & Voice Engine** | MediaPipe, BarcodeDetector, Gemini Vision, TTS | Tiered recognition pipeline, context-aware LLM evaluation, and real-time audio generation |
+| **Vision & Voice Engine** | zxing-wasm / BarcodeDetector, Open Food Facts, Gemini Vision, streaming TTS | Barcode-first recognition with vision fallback, deterministic allergen rules, context-aware LLM evaluation, and real-time audio generation |
 
 ---
 
