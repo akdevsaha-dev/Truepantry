@@ -8,7 +8,7 @@ router = APIRouter(prefix="/onboarding/profile", tags=["Onboarding"])
 supabase = get_supabase_client()
 
 
-@router.patch("/")
+@router.patch("")
 def update_profile_step(
     data: OnboardingProfileValidation,
     current_user: dict = Depends(get_current_user),

@@ -8,7 +8,7 @@ router = APIRouter(prefix="/onboarding/goals", tags=["Onboarding"])
 supabase = get_supabase_client()
 
 
-@router.patch("/")
+@router.patch("")
 def update_goal_step(
     data: OnboardingGoalValidation,
     current_user: dict = Depends(get_current_user),

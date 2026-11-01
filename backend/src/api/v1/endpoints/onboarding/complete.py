@@ -7,7 +7,7 @@ router = APIRouter(prefix="/onboarding/complete", tags=["Onboarding"])
 supabase = get_supabase_client()
 
 
-@router.post("/")
+@router.post("")
 def complete_onboarding(current_user: dict = Depends(get_current_user)):
     try:
         user_id = current_user["id"]
@@ -45,12 +45,10 @@ def complete_onboarding(current_user: dict = Depends(get_current_user)):
                 detail=f"Cannot complete onboarding. Incomplete steps: {', '.join(missing_fields)}",
             )
 
-        
         supabase.table("profiles").update(
             {"is_completed": True, "onboarding_step": 3}
         ).eq("user_id", user_id).execute()
 
-        
         supabase.table("users").update({"is_onboarded": True}).eq(
             "id", user_id
         ).execute()

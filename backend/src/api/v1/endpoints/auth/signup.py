@@ -9,7 +9,7 @@ router = APIRouter(prefix="/auth/signup", tags=["Signup"])
 supabase = get_supabase_client()
 
 
-@router.post("/")
+@router.post("")
 def signup(data: SignupValidation, response: Response):
     try:
         existing_user = (

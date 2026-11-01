@@ -8,7 +8,7 @@ router = APIRouter(prefix="/onboarding/preferences", tags=["Onboarding"])
 supabase = get_supabase_client()
 
 
-@router.patch("/")
+@router.patch("")
 def update_preferences_step(
     data: OnboardingPreferencesValidation,
     current_user: dict = Depends(get_current_user),

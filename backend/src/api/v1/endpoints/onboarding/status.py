@@ -7,7 +7,7 @@ router = APIRouter(prefix="/onboarding", tags=["Onboarding"])
 supabase = get_supabase_client()
 
 
-@router.get("/")
+@router.get("")
 def get_onboarding(current_user: dict = Depends(get_current_user)):
     try:
         res = (
@@ -35,26 +35,32 @@ def get_onboarding(current_user: dict = Depends(get_current_user)):
         return {
             "onboarding_step": profile.get("onboarding_step", 0),
             "is_completed": profile.get("is_completed", False),
-            "profile": {
-                "dob": profile.get("dob"),
-                "height": profile.get("height"),
-                "gender": profile.get("gender"),
-            }
-            if has_profile
-            else None,
-            "goal": {
-                "goal": profile.get("goal"),
-            }
-            if has_goal
-            else None,
-            "preferences": {
-                "diet": profile.get("diet"),
-                "other_diet": profile.get("other_diet"),
-                "allergies": profile.get("allergies") or [],
-                "other_allergy": profile.get("other_allergy"),
-            }
-            if has_preferences
-            else None,
+            "profile": (
+                {
+                    "dob": profile.get("dob"),
+                    "height": profile.get("height"),
+                    "gender": profile.get("gender"),
+                }
+                if has_profile
+                else None
+            ),
+            "goal": (
+                {
+                    "goal": profile.get("goal"),
+                }
+                if has_goal
+                else None
+            ),
+            "preferences": (
+                {
+                    "diet": profile.get("diet"),
+                    "other_diet": profile.get("other_diet"),
+                    "allergies": profile.get("allergies") or [],
+                    "other_allergy": profile.get("other_allergy"),
+                }
+                if has_preferences
+                else None
+            ),
         }
 
     except HTTPException:

@@ -9,7 +9,7 @@ router = APIRouter(prefix="/auth/signin", tags=["Signin"])
 supabase = get_supabase_client()
 
 
-@router.post("/")
+@router.post("")
 def signin(data: SigninValidation, response: Response):
     try:
         user_exists = (
