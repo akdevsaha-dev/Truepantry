@@ -11,7 +11,7 @@ export function ScanDemo() {
     <div
       className="w-full max-w-[39rem] rounded-xl border border-line bg-surface-raised p-[clamp(1rem,2vw,1.5rem)] shadow-soft"
       role="group"
-      aria-label="Interactive Carted product concept"
+      aria-label="Interactive truePantry product concept"
     >
       <div className="flex items-center justify-between gap-4 pb-4 font-mono text-[0.7rem] font-normal text-ink-soft uppercase">
         <span>Example scan</span>
@@ -68,7 +68,7 @@ export function ScanDemo() {
         aria-atomic="true"
       >
         <div className="grid gap-2">
-          <span className="text-[0.68rem] font-bold">Carted says</span>
+          <span className="text-[0.68rem] font-bold">truePantry says</span>
           <strong className="text-[1.1rem] tracking-[-0.035em]">
             {selectedGoal.verdict}
           </strong>

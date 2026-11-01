@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useRef, useState, type FormEvent } from "react";
+import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Eye, EyeSlash } from "@phosphor-icons/react";
 import { useAuthStore } from "@/lib/stores";
 
@@ -9,8 +10,10 @@ type Field = "email" | "username" | "password";
 type Errors = Partial<Record<Field, string>>;
 
 export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
+  const router = useRouter();
   const signup = mode === "sign-up";
-  const { signIn, signUp, isLoading, user, clearError } = useAuthStore();
+  const { signIn, signUp, isLoading, user, checkAuth, clearError } = useAuthStore();
+  const [isNavigating, setIsNavigating] = useState(false);
   const [visible, setVisible] = useState(false);
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState<Errors>({});
@@ -19,9 +22,20 @@ export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
   const messageRef = useRef<HTMLDivElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
 
+  useEffect(() => {
+    checkAuth().then((currentUser) => {
+      if (currentUser) {
+        const params = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
+        const returnUrl = params?.get("from") || params?.get("redirect");
+        const safeReturn = returnUrl && returnUrl.startsWith("/") && !returnUrl.startsWith("//") ? returnUrl : null;
+        router.replace(safeReturn || (currentUser.is_onboarded ? "/dashboard" : "/onboarding"));
+      }
+    });
+  }, [checkAuth, router]);
+
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (isLoading) return;
+    if (isLoading || isNavigating) return;
 
     const values = new FormData(event.currentTarget);
     const email = String(values.get("email") ?? "").trim();
@@ -56,20 +70,33 @@ export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
           username,
           password: enteredPassword,
         });
+        setIsNavigating(true);
+        router.push("/onboarding");
+        return;
       } else {
-        await signIn({
+        const loggedInUser = await signIn({
           email,
           password: enteredPassword,
         });
+        setIsNavigating(true);
+        const params = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
+        const returnUrl = params?.get("from") || params?.get("redirect");
+        const safeReturn = returnUrl && returnUrl.startsWith("/") && !returnUrl.startsWith("//") ? returnUrl : null;
+        if (safeReturn) {
+          router.push(safeReturn);
+        } else if (loggedInUser.is_onboarded) {
+          router.push("/dashboard");
+        } else {
+          router.push("/onboarding");
+        }
+        return;
       }
-      setSuccess(true);
-      setPassword("");
-      formRef.current?.reset();
     } catch (err: unknown) {
+      setIsNavigating(false);
       const message =
         err instanceof Error
           ? err.message
-          : "We couldn’t connect to Carted. Please check your connection and try again.";
+          : "We couldn’t connect to truePantry. Please check your connection and try again.";
       setNotice(message);
     } finally {
       requestAnimationFrame(() => messageRef.current?.focus());
@@ -87,23 +114,23 @@ export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
         role="status"
       >
         <span
-          className="mb-6 grid size-12 place-items-center rounded-[15px] border border-[#dce5d9] bg-[#f0f5ed] text-[#254b36]"
+          className="mb-4 grid size-11 place-items-center rounded-[14px] border border-[#dce5d9] bg-[#f0f5ed] text-[#254b36]"
           aria-hidden="true"
         >
           ✓
         </span>
-        <h1 className="m-0 text-[clamp(30px,2.8vw,40px)] font-[550] leading-[1.15] tracking-[-0.055em] text-[#171717] max-[800px]:text-[36px] max-[380px]:text-[32px]">
+        <h1 className="m-0 text-[clamp(26px,2.4vw,34px)] font-[550] leading-[1.15] tracking-[-0.055em] text-[#171717] max-[800px]:text-[30px] max-[380px]:text-[26px]">
           {signup ? "You’re on the list." : "You’re back in."}
         </h1>
-        <p className="my-3.5 mb-7 text-[15px] leading-[1.7] text-[#686c67] whitespace-pre-line">
+        <p className="my-2.5 mb-5 text-[14px] leading-[1.6] text-[#686c67] whitespace-pre-line">
           {signup
-            ? "Your Carted account is ready. Let’s personalize your grocery experience."
+            ? "Your truePantry account is ready. Let’s personalize your grocery experience."
             : "You’ve signed in successfully. A little more confidence for your next grocery shop."}
         </p>
 
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-2.5">
           <Link
-            className="mt-1 flex min-h-[53px] w-full cursor-pointer items-center justify-center gap-3 rounded-[10px] border border-[#254b36] bg-[#254b36] text-sm font-[550] text-white transition-[background,transform,box-shadow] duration-200 hover:bg-[#183b29] hover:shadow-[0_4px_12px_#254b3625] active:scale-[0.99]"
+            className="mt-1 flex min-h-[46px] w-full cursor-pointer items-center justify-center gap-3 rounded-[10px] border border-[#254b36] bg-[#254b36] text-sm font-[550] text-white transition-[background,transform,box-shadow] duration-200 hover:bg-[#183b29] hover:shadow-[0_4px_12px_#254b3625] active:scale-[0.99]"
             href={isOnboarded ? "/dashboard" : "/onboarding"}
           >
             {isOnboarded ? "Open my dashboard" : "Continue to personalization"} <span aria-hidden="true">↗</span>
@@ -111,7 +138,7 @@ export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
 
           {!isOnboarded && (
             <Link
-              className="flex min-h-[44px] w-full cursor-pointer items-center justify-center gap-2 rounded-[10px] border border-[#d5d8d1] bg-white text-xs font-[500] text-[#686c67] transition-colors hover:bg-[#f8faf7] hover:text-[#171717]"
+              className="flex min-h-[40px] w-full cursor-pointer items-center justify-center gap-2 rounded-[10px] border border-[#d5d8d1] bg-white text-xs font-[500] text-[#686c67] transition-colors hover:bg-[#f8faf7] hover:text-[#171717]"
               href="/dashboard"
             >
               Skip setup for now
@@ -125,12 +152,12 @@ export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
   return (
     <div className="mx-auto w-full max-w-[390px] animate-[enter_0.65s_cubic-bezier(0.2,0.7,0.2,1)_both] max-[800px]:max-w-[420px]">
       <span
-        className="mb-6 grid size-12 place-items-center rounded-[15px] border border-[#dce5d9] bg-[#f0f5ed] text-[#254b36]"
+        className="mb-4 grid size-11 place-items-center rounded-[14px] border border-[#dce5d9] bg-[#f0f5ed] text-[#254b36]"
         aria-hidden="true"
       >
         <svg
-          width="25"
-          height="25"
+          width="22"
+          height="22"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
@@ -143,21 +170,21 @@ export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
           />
         </svg>
       </span>
-      <h1 className="m-0 text-[clamp(30px,2.8vw,40px)] font-[550] leading-[1.15] tracking-[-0.055em] text-[#171717] max-[800px]:text-[36px] max-[380px]:text-[32px]">
+      <h1 className="m-0 text-[clamp(26px,2.4vw,34px)] font-[550] leading-[1.15] tracking-[-0.055em] text-[#171717] max-[800px]:text-[30px] max-[380px]:text-[26px]">
         {signup ? "A fresh start." : "Good to have you back."}
       </h1>
-      <nav className="mt-7 mb-7 flex rounded-xl bg-[#f3f4f1] p-1" aria-label="Account access">
+      <nav className="mt-4 mb-4 flex rounded-xl bg-[#f3f4f1] p-1" aria-label="Account access">
         <Link
           href="/sign-in"
           aria-current={!signup ? "page" : undefined}
-          className="grid min-h-[42px] flex-1 place-items-center rounded-[9px] text-sm font-[550] text-[#686c67] transition-[background,color] duration-200 hover:text-[#254b36] aria-[current=page]:bg-white aria-[current=page]:text-[#171717] aria-[current=page]:shadow-[0_2px_5px_#172c1510]"
+          className="grid min-h-[38px] flex-1 place-items-center rounded-[9px] text-sm font-[550] text-[#686c67] transition-[background,color] duration-200 hover:text-[#254b36] aria-[current=page]:bg-white aria-[current=page]:text-[#171717] aria-[current=page]:shadow-[0_2px_5px_#172c1510]"
         >
           Sign in
         </Link>
         <Link
           href="/sign-up"
           aria-current={signup ? "page" : undefined}
-          className="grid min-h-[42px] flex-1 place-items-center rounded-[9px] text-sm font-[550] text-[#686c67] transition-[background,color] duration-200 hover:text-[#254b36] aria-[current=page]:bg-white aria-[current=page]:text-[#171717] aria-[current=page]:shadow-[0_2px_5px_#172c1510]"
+          className="grid min-h-[38px] flex-1 place-items-center rounded-[9px] text-sm font-[550] text-[#686c67] transition-[background,color] duration-200 hover:text-[#254b36] aria-[current=page]:bg-white aria-[current=page]:text-[#171717] aria-[current=page]:shadow-[0_2px_5px_#172c1510]"
         >
           Sign up
         </Link>
@@ -166,10 +193,10 @@ export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
         ref={formRef}
         onSubmit={submit}
         noValidate
-        className="grid gap-5"
-        aria-busy={isLoading}
+        className="grid gap-3.5"
+        aria-busy={isLoading || isNavigating}
       >
-        <div className="grid gap-2">
+        <div className="grid gap-1.5">
           <label htmlFor="email" className="text-[13px] font-semibold text-[#171717]">
             Email address
           </label>
@@ -182,7 +209,7 @@ export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
             required
             aria-invalid={!!errors.email}
             aria-describedby={errors.email ? "email-error" : undefined}
-            className="min-h-[52px] w-full rounded-[10px] border border-[#d5d8d1] bg-white px-[15px] py-[13px] font-inherit text-[15px] text-[#171717] transition-[border-color,box-shadow] duration-200 placeholder:text-[#858880] focus:border-[#66866b] focus:shadow-[0_0_0_3px_#eaf1e6] focus:outline-none aria-[invalid=true]:border-[#b24038]"
+            className="min-h-[46px] w-full rounded-[10px] border border-[#d5d8d1] bg-white px-[14px] py-[10px] font-inherit text-[15px] text-[#171717] transition-[border-color,box-shadow] duration-200 placeholder:text-[#858880] focus:border-[#66866b] focus:shadow-[0_0_0_3px_#eaf1e6] focus:outline-none aria-[invalid=true]:border-[#b24038]"
           />
           {errors.email && (
             <p id="email-error" className="m-0 text-xs leading-[1.5] text-[#a3322b]">
@@ -192,7 +219,7 @@ export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
         </div>
 
         {signup && (
-          <div className="grid gap-2">
+          <div className="grid gap-1.5">
             <label htmlFor="username" className="text-[13px] font-semibold text-[#171717]">
               Username
             </label>
@@ -209,7 +236,7 @@ export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
               required
               aria-invalid={!!errors.username}
               aria-describedby={errors.username ? "username-error" : undefined}
-              className="min-h-[52px] w-full rounded-[10px] border border-[#d5d8d1] bg-white px-[15px] py-[13px] font-inherit text-[15px] text-[#171717] transition-[border-color,box-shadow] duration-200 placeholder:text-[#858880] focus:border-[#66866b] focus:shadow-[0_0_0_3px_#eaf1e6] focus:outline-none aria-[invalid=true]:border-[#b24038]"
+              className="min-h-[46px] w-full rounded-[10px] border border-[#d5d8d1] bg-white px-[14px] py-[10px] font-inherit text-[15px] text-[#171717] transition-[border-color,box-shadow] duration-200 placeholder:text-[#858880] focus:border-[#66866b] focus:shadow-[0_0_0_3px_#eaf1e6] focus:outline-none aria-[invalid=true]:border-[#b24038]"
             />
             {errors.username && (
               <p id="username-error" className="m-0 text-xs leading-[1.5] text-[#a3322b]">
@@ -219,7 +246,7 @@ export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
           </div>
         )}
 
-        <div className="grid gap-2">
+        <div className="grid gap-1.5">
           <label htmlFor="password" className="text-[13px] font-semibold text-[#171717]">
             Password
           </label>
@@ -237,16 +264,16 @@ export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
               onChange={(event) => setPassword(event.target.value)}
               aria-invalid={!!errors.password}
               aria-describedby={errors.password ? "password-error" : undefined}
-              className="min-h-[52px] w-full rounded-[10px] border border-[#d5d8d1] bg-white pr-[52px] pl-[15px] py-[13px] font-inherit text-[15px] text-[#171717] transition-[border-color,box-shadow] duration-200 placeholder:text-[#858880] focus:border-[#66866b] focus:shadow-[0_0_0_3px_#eaf1e6] focus:outline-none aria-[invalid=true]:border-[#b24038]"
+              className="min-h-[46px] w-full rounded-[10px] border border-[#d5d8d1] bg-white pr-[48px] pl-[14px] py-[10px] font-inherit text-[15px] text-[#171717] transition-[border-color,box-shadow] duration-200 placeholder:text-[#858880] focus:border-[#66866b] focus:shadow-[0_0_0_3px_#eaf1e6] focus:outline-none aria-[invalid=true]:border-[#b24038]"
             />
             <button
-              className="absolute top-1 right-[5px] grid size-11 cursor-pointer place-items-center rounded-[7px] border-0 bg-transparent text-[#73776e] transition-colors hover:bg-[#f1f4ed] hover:text-[#254b36]"
+              className="absolute top-0.5 right-[3px] grid size-10 cursor-pointer place-items-center rounded-[7px] border-0 bg-transparent text-[#73776e] transition-colors hover:bg-[#f1f4ed] hover:text-[#254b36]"
               type="button"
               aria-label={visible ? "Hide password" : "Show password"}
               aria-pressed={visible}
               onClick={() => setVisible(!visible)}
             >
-              {visible ? <EyeSlash size={20} /> : <Eye size={20} />}
+              {visible ? <EyeSlash size={19} /> : <Eye size={19} />}
             </button>
           </div>
           {errors.password ? (
@@ -260,7 +287,7 @@ export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
           <div
             ref={messageRef}
             tabIndex={-1}
-            className="rounded-lg bg-[#fff2ed] px-3.5 py-3 text-[13px] leading-[1.5] text-[#90362c]"
+            className="rounded-lg bg-[#fff2ed] px-3.5 py-2.5 text-[13px] leading-[1.5] text-[#90362c]"
             role="alert"
           >
             {notice}
@@ -268,24 +295,24 @@ export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
         )}
 
         <button
-          className="mt-1 flex min-h-[53px] w-full cursor-pointer items-center justify-center gap-3 rounded-[10px] border border-[#254b36] bg-[#254b36] text-sm font-[550] text-white transition-[background,transform,box-shadow] duration-200 hover:bg-[#183b29] hover:shadow-[0_4px_12px_#254b3625] active:scale-[0.99] disabled:cursor-wait disabled:opacity-70"
-          disabled={isLoading}
+          className="mt-1 flex min-h-[48px] w-full cursor-pointer items-center justify-center gap-3 rounded-[10px] border border-[#254b36] bg-[#254b36] text-sm font-[550] text-white transition-[background,transform,box-shadow] duration-200 hover:bg-[#183b29] hover:shadow-[0_4px_12px_#254b3625] active:scale-[0.99] disabled:cursor-wait disabled:opacity-70"
+          disabled={isLoading || isNavigating}
           type="submit"
         >
-          {isLoading ? (
+          {isLoading || isNavigating ? (
             <>
               <span
                 className="size-[17px] animate-spin rounded-full border-2 border-white/35 border-t-white"
                 aria-hidden="true"
               />
-              {signup ? "Creating your account…" : "Signing you in…"}
+              {signup ? (isNavigating ? "Redirecting to personalization…" : "Creating your account…") : "Signing you in…"}
             </>
           ) : (
             <>
               {signup ? "Create free account" : "Sign in"}
               <svg
-                width="20"
-                height="20"
+                width="19"
+                height="19"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
@@ -304,7 +331,7 @@ export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
       </form>
 
       {signup && (
-        <p className="m-0 mt-6 text-center text-xs text-[#686c67]">
+        <p className="m-0 mt-3.5 text-center text-xs text-[#686c67]">
           Free to start. No credit card needed.
         </p>
       )}

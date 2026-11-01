@@ -98,6 +98,13 @@ body {
   text-rendering: optimizeLegibility;
 }
 
+html:has(#auth-layout),
+body:has(#auth-layout) {
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
 .island-section {
   background: var(--surface);
   border-radius: 0.75rem;

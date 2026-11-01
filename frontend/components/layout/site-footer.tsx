@@ -12,7 +12,7 @@ export function SiteFooter() {
               <BrandLogo href="#top" theme="light" />
             </div>
             <p className="mb-10 max-w-sm text-base leading-[1.625] text-neutral-400">
-              Carted turns product labels, shelf prices, and your own priorities
+              truePantry turns product labels, shelf prices, and your own priorities
               into a clear grocery decision.
             </p>
           </div>
@@ -48,7 +48,7 @@ export function SiteFooter() {
         </div>
 
         <div className="flex flex-col items-start gap-3 border-t border-white/10 pt-8 text-sm text-neutral-400 sm:flex-row sm:items-center sm:justify-between">
-          <p>© 2026 Carted. All rights reserved.</p>
+          <p>© 2026 truePantry. All rights reserved.</p>
           <p>Shopping guidance, not medical advice.</p>
         </div>
       </div>

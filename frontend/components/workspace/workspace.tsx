@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import {
   ArrowUpRight,
@@ -31,7 +31,7 @@ const defaultProfile: ProfileData = {
   goal: 'More protein',
   diet: 'Vegetarian',
 };
-const profileKey = 'carted-preview-profile';
+const profileKey = 'truepantry-preview-profile';
 
 type State = {
   profile: ProfileData;
@@ -63,7 +63,7 @@ export function ProductArt({ product, small = false }: { product: Product; small
       role="img"
     >
       <div className={`${s.package} ${s[product.shape]}`}>
-        <span className={s.packageBrand}>carted market</span>
+        <span className={s.packageBrand}>truePantry market</span>
         <strong>{product.label}</strong>
         <span className={s.packageSub}>{product.sub}</span>
         <Leaf size={19} weight="light" aria-hidden="true" />
@@ -88,8 +88,9 @@ export function Quantity({ id, value }: { id: string; value: number }) {
 }
 
 export function Workspace({ children }: { children: React.ReactNode }) {
+  const router = useRouter();
   const path = usePathname();
-  const { user, isAuthenticated, checkAuth, signOut } = useAuthStore();
+  const { user, isAuthenticated, isInitialized, checkAuth, signOut } = useAuthStore();
   const { profile: onboardingData, fetchStatus } = useOnboardingStore();
 
   const [quantities, setQuantities] = useState<Record<string, number>>({
@@ -102,10 +103,14 @@ export function Workspace({ children }: { children: React.ReactNode }) {
   const [profileReady, setProfileReady] = useState(false);
 
   useEffect(() => {
-    checkAuth().finally(() => {
-      fetchStatus();
+    checkAuth().then((currentUser) => {
+      if (!currentUser) {
+        router.replace('/sign-in?from=' + encodeURIComponent(path));
+      } else {
+        fetchStatus();
+      }
     });
-  }, [checkAuth, fetchStatus]);
+  }, [checkAuth, fetchStatus, path, router]);
 
   useEffect(() => {
     const frame = requestAnimationFrame(() => {
@@ -163,12 +168,26 @@ export function Workspace({ children }: { children: React.ReactNode }) {
     return () => clearTimeout(timeout);
   }, [notice]);
 
+  if (!isInitialized || !isAuthenticated) {
+    return (
+      <div className="flex h-screen h-[100dvh] w-full items-center justify-center bg-[#fafbf9]">
+        <div className="flex flex-col items-center gap-3 text-center">
+          <span
+            className="size-7 animate-spin rounded-full border-2 border-[#254b36]/20 border-t-[#254b36]"
+            aria-hidden="true"
+          />
+          <p className="text-xs font-medium tracking-tight text-[#686c67]">Checking access…</p>
+        </div>
+      </div>
+    );
+  }
+
   const change = (id: string, delta: number) =>
     setQuantities((q) => ({ ...q, [id]: Math.max(0, (q[id] || 0) + delta) }));
 
   const nav = [
     { href: '/dashboard', label: 'Overview', icon: House },
-    { href: '/chat', label: 'Ask Carted', icon: Sparkle },
+    { href: '/chat', label: 'Ask truePantry', icon: Sparkle },
     { href: '/cart', label: 'My cart', icon: ShoppingBag },
     { href: '/profile', label: 'Profile', icon: UserCircle },
   ];

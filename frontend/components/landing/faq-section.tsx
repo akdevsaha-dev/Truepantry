@@ -13,22 +13,22 @@ const faqs = [
   {
     question: "What happens when I scan a product?",
     answer:
-      "Carted matches the barcode to the exact product, reads available label and price data, and checks it against the shopping goal and household rules you selected. The result includes the facts behind the recommendation.",
+      "truePantry matches the barcode to the exact product, reads available label and price data, and checks it against the shopping goal and household rules you selected. The result includes the facts behind the recommendation.",
   },
   {
-    question: "Does Carted decide whether a food is healthy?",
+    question: "Does truePantry decide whether a food is healthy?",
     answer:
-      "No. Foods do not receive a universal good-or-bad score. Carted explains how a product fits a specific goal—such as lower added sugar, more protein, or a lower unit price—so you can make the final call.",
+      "No. Foods do not receive a universal good-or-bad score. truePantry explains how a product fits a specific goal—such as lower added sugar, more protein, or a lower unit price—so you can make the final call.",
   },
   {
     question: "Can I add allergies and dietary preferences?",
     answer:
-      "Yes. You can keep allergies, intolerances, and preferences in a household profile. Carted puts relevant ingredient and may-contain warnings ahead of nutrition or price suggestions.",
+      "Yes. You can keep allergies, intolerances, and preferences in a household profile. truePantry puts relevant ingredient and may-contain warnings ahead of nutrition or price suggestions.",
   },
   {
-    question: "What if Carted cannot verify the exact item?",
+    question: "What if truePantry cannot verify the exact item?",
     answer:
-      "It will say that the match is incomplete and ask you to confirm the variant or scan the nutrition and ingredient panels. Carted does not substitute data from a similar flavour or pack size without telling you.",
+      "It will say that the match is incomplete and ask you to confirm the variant or scan the nutrition and ingredient panels. truePantry does not substitute data from a similar flavour or pack size without telling you.",
   },
   {
     question: "How does annual Pro billing work?",

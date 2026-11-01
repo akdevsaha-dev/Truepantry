@@ -248,7 +248,7 @@ function ProfileForm({ initial }: { initial: ProfileData }) {
       <aside className={s.planPanel} aria-labelledby="plan-title">
         <span className={s.eyebrow}>YOUR PLAN</span>
         <div className={s.planHeading}>
-          <h2 id="plan-title">Carted Free</h2>
+          <h2 id="plan-title">truePantry Free</h2>
           <span className={s.demoBadge}>Sample plan</span>
         </div>
         <p>A little clarity for your everyday shopping.</p>
@@ -265,7 +265,7 @@ function ProfileForm({ initial }: { initial: ProfileData }) {
         <div className={s.planNote}>
           <Leaf size={22} aria-hidden="true" />
           <p>
-            You’re exploring Carted. Your account credentials and onboarding preferences are securely
+            You’re exploring truePantry. Your account credentials and onboarding preferences are securely
             managed through FastAPI and Zustand.
           </p>
         </div>

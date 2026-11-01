@@ -16,7 +16,7 @@ const moments = [
     context: "Shopping with an allergy",
     title: "Catch the warning hidden below the ingredients",
     description:
-      "Keep a household allergy on your profile and Carted surfaces contains and may-contain statements before anything else.",
+      "Keep a household allergy on your profile and truePantry surfaces contains and may-contain statements before anything else.",
   },
   {
     context: "Staying on budget",
@@ -44,7 +44,7 @@ export function ShoppingMoments() {
             Useful when two products both look like the right choice
           </h2>
           <p className="self-end text-[1.05rem] leading-[1.6] text-ink-soft">
-            Carted is for the thirty-second decisions that happen under fluorescent
+            truePantry is for the thirty-second decisions that happen under fluorescent
             lights, with a basket in one hand and two nearly identical labels in the
             other.
           </p>

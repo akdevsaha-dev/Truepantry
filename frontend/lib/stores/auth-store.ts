@@ -60,6 +60,7 @@ export const useAuthStore = create<AuthState>((set) => ({
         user,
         isAuthenticated: true,
         isLoading: false,
+        isInitialized: true,
         error: null,
       });
       return user;
@@ -84,6 +85,7 @@ export const useAuthStore = create<AuthState>((set) => ({
         user,
         isAuthenticated: true,
         isLoading: false,
+        isInitialized: true,
         error: null,
       });
       return user;
@@ -108,6 +110,7 @@ export const useAuthStore = create<AuthState>((set) => ({
         user: null,
         isAuthenticated: false,
         isLoading: false,
+        isInitialized: true,
         error: null,
       });
     }
@@ -117,6 +120,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({
       user,
       isAuthenticated: !!user,
+      isInitialized: true,
     });
   },
 

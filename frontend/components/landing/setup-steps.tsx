@@ -29,7 +29,7 @@ const steps = [
     num: "02",
     icon: "/images/steps/step-2.svg",
     title: "Scan the exact product",
-    description: "Point your camera at the barcode. Carted matches the variant and reads the product facts tied to that code.",
+    description: "Point your camera at the barcode. truePantry matches the variant and reads the product facts tied to that code.",
   },
   {
     num: "03",
@@ -110,7 +110,7 @@ export function SetupSteps() {
               From barcode to a useful answer in three steps
             </h2>
             <p className={`${sectionLede} mb-10 max-w-lg`}>
-              No nutrition spreadsheet and no one-size-fits-all score. Carted keeps the explanation short enough to use while you are standing in the aisle.
+              No nutrition spreadsheet and no one-size-fits-all score. truePantry keeps the explanation short enough to use while you are standing in the aisle.
             </p>
             <Link
               href="#product"

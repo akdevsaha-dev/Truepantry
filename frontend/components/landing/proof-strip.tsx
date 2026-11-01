@@ -45,7 +45,7 @@ export function ProofStrip() {
   return (
     <section
       className={`island-section ${styles.section}`}
-      aria-label="How Carted makes recommendations"
+      aria-label="How truePantry makes recommendations"
       ref={sectionRef}
     >
       <div className={styles.inner}>

@@ -24,7 +24,7 @@ export function ProductStory() {
               One product. Different answers for different priorities.
             </h2>
             <p className={`${sectionLede} mb-8 max-w-lg`}>
-              Carted does not hand out a generic health score. It identifies the
+              truePantry does not hand out a generic health score. It identifies the
               exact item, shows the facts behind its answer, and explains how well
               it fits the goal you chose for this shop.
             </p>

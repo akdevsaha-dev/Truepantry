@@ -22,7 +22,7 @@ export function InputNetwork() {
             The whole label, not the loudest claim
           </h2>
           <p className={`${sectionLede} mx-auto max-w-2xl`}>
-            Carted reads what is in the pack, what it costs, and whether it makes
+            truePantry reads what is in the pack, what it costs, and whether it makes
             sense for your household and the rest of this shop.
           </p>
         </div>
@@ -45,7 +45,7 @@ export function InputNetwork() {
                   <p className={styles.eyebrow}>Per 170 g serve</p>
                   <h3>What is actually in a bowl</h3>
                 </div>
-                <p>Carted also checks the per 100 g column so pack sizes compare fairly.</p>
+                <p>truePantry also checks the per 100 g column so pack sizes compare fairly.</p>
               </div>
               <dl className={styles.nutritionStats}>
                 <div><dt>Protein</dt><dd>18 g</dd></div>

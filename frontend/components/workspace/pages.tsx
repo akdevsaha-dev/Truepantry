@@ -90,7 +90,7 @@ export function Dashboard() {
           </div>
           <div className={s.heroArt}>
             <Image
-              src="/images/carted-grocery-cart-transparent.png"
+              src="/images/truepantry-grocery-cart-transparent.png"
               alt="A playful shopping cart filled with fresh groceries"
               fill
               sizes="(max-width: 700px) 220px, 340px"
@@ -341,7 +341,7 @@ export function Cart() {
             <Sparkle size={23} />
             <span>
               <strong>A second look at your basket?</strong>
-              <small>Find ideas with Ask Carted</small>
+              <small>Find ideas with Ask truePantry</small>
             </span>
             <ArrowRight size={17} />
           </Link>
@@ -439,7 +439,7 @@ export function Chat() {
               <Sparkle size={19} weight="fill" />
             </span>
             <span>
-              <strong>Carted companion</strong>
+              <strong>truePantry companion</strong>
               <small>A little context. A lot more clarity.</small>
             </span>
             <span className={s.demoBadge}>Demo</span>
@@ -492,7 +492,7 @@ export function Chat() {
                     </span>
                     <div>
                       <strong>
-                        {m.role === "assistant" ? "Carted" : "You"}
+                        {m.role === "assistant" ? "truePantry" : "You"}
                       </strong>
                       <p>{m.text}</p>
                       {m.role === "assistant" && (
@@ -519,7 +519,7 @@ export function Chat() {
             }}
           >
             <label htmlFor="chat-message" className={s.srOnly}>
-              Your message to Carted
+              Your message to truePantry
             </label>
             <input
               id="chat-message"

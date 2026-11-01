@@ -16,7 +16,7 @@ const spaceMono = Space_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Carted — Clearer grocery decisions from every label",
+  title: "truePantry — Clearer grocery decisions from every label",
   description:
     "Scan exact grocery products, check ingredients and allergens, compare unit prices, and see how each item fits your household and shopping goal.",
 };

@@ -12,7 +12,7 @@ export function Hero() {
           <p className={styles.kicker}>Your second opinion in the grocery aisle</p>
           <h1 id="hero-heading">Know what you&apos;re bringing home.</h1>
           <p className={styles.lede}>
-            Scan a barcode and Carted checks the exact product against your goals,
+            Scan a barcode and truePantry checks the exact product against your goals,
             dietary needs, budget, and everything else already in your basket.
           </p>
           <div className={styles.actions}>
@@ -27,7 +27,7 @@ export function Hero() {
           <div className={styles.orbit} />
           <Image
             className={styles.image}
-            src="/images/carted-grocery-cart-transparent.png"
+            src="/images/truepantry-grocery-cart-transparent.png"
             alt=""
             width={1000}
             height={1000}

@@ -41,15 +41,15 @@ export function BrandLogo({
     <Link
       href={href}
       className={`inline-flex min-h-11 items-center gap-[9px] font-[650] tracking-[-0.06em] transition-opacity hover:opacity-90 ${sizeClasses} ${themeClasses} ${className}`.trim()}
-      aria-label="Carted home"
+      aria-label="truePantry home"
     >
       <span
         className={`grid place-items-center rounded-full font-bold ${badgeSize} ${badgeTheme}`}
         aria-hidden="true"
       >
-        c
+        t
       </span>
-      <span>carted</span>
+      <span>truePantry</span>
       {showDot && (
         <span className="text-xs font-semibold text-[#54754b]" aria-hidden="true">
           ®

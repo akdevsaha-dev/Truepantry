@@ -12,7 +12,7 @@ const capabilities = [
     label: "Exact product match",
     title: "Scan the item, not the category",
     description:
-      "Carted matches the barcode to the exact flavour and pack size, then reads the serving, ingredient, allergen, and nutrition details that belong to it.",
+      "truePantry matches the barcode to the exact flavour and pack size, then reads the serving, ingredient, allergen, and nutrition details that belong to it.",
     theme: "sage",
     icon: (
       <svg aria-hidden="true" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -50,7 +50,7 @@ const capabilities = [
     label: "Whole-cart context",
     title: "Make the next choice with the basket in mind",
     description:
-      "Carted remembers the goal for this trip and what is already in your basket, so the fourth snack is judged differently from the first.",
+      "truePantry remembers the goal for this trip and what is already in your basket, so the fourth snack is judged differently from the first.",
     theme: "blush",
     icon: (
       <svg aria-hidden="true" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -174,7 +174,7 @@ function BasketVisual() {
       </div>
       <div className={styles.basketVerdict}>
         <span className={styles.verdictIcon}><CheckMark /></span>
-        <div><span>Carted says</span><strong>Add it</strong><p>Adds 18 g protein without adding sugar.</p></div>
+        <div><span>truePantry says</span><strong>Add it</strong><p>Adds 18 g protein without adding sugar.</p></div>
         <span className={styles.fitBadge}>Good fit</span>
       </div>
     </div>
@@ -253,13 +253,13 @@ export function CapabilityStack() {
                 strokeLinejoin="round"
               />
             </svg>
-            What Carted does
+            What truePantry does
           </p>
           <h2
             id="capabilities-heading"
             className="text-balance text-[clamp(1.85rem,3.8vw,3.25rem)] leading-[1.25] font-medium tracking-[-0.04em] text-ink-soft"
           >
-            The label gives you facts. Carted tells you which ones matter for this shop.
+            The label gives you facts. truePantry tells you which ones matter for this shop.
           </h2>
         </div>
 

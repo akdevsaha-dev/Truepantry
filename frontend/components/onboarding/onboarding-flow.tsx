@@ -52,7 +52,7 @@ const titles = [
 ];
 
 const descriptions = [
-  "A few little details to make your Carted experience feel a lot more you.",
+  "A few little details to make your truePantry experience feel a lot more you.",
   "Pick the goal that matters most right now. There’s no perfect answer.",
   "Tell us what you enjoy, and what needs to stay out of your cart.",
 ];
@@ -125,7 +125,7 @@ function Icon({ name, size = 22 }: { name: string; size?: number }) {
 
 export function OnboardingFlow() {
   const router = useRouter();
-  const { user, isAuthenticated, checkAuth } = useAuthStore();
+  const { user, isAuthenticated, isInitialized, checkAuth } = useAuthStore();
   const {
     step,
     direction,
@@ -151,10 +151,14 @@ export function OnboardingFlow() {
   const form = useRef<HTMLFormElement>(null);
 
   useEffect(() => {
-    checkAuth().finally(() => {
-      fetchStatus();
+    checkAuth().then((currentUser) => {
+      if (!currentUser) {
+        router.replace("/sign-in?from=%2Fonboarding");
+      } else {
+        fetchStatus();
+      }
     });
-  }, [checkAuth, fetchStatus]);
+  }, [checkAuth, fetchStatus, router]);
 
   useEffect(() => {
     if (firstRender.current) {
@@ -266,6 +270,20 @@ export function OnboardingFlow() {
 
   const chosenGoal = goals.find((goal) => goal[0] === profile.goal);
   const isSummaryStep = step >= 3;
+
+  if (!isInitialized || !isAuthenticated) {
+    return (
+      <div className="flex h-screen h-[100dvh] w-full items-center justify-center bg-[#f4f7f2]">
+        <div className="flex flex-col items-center gap-3 text-center">
+          <span
+            className="size-7 animate-spin rounded-full border-2 border-[#254b36]/20 border-t-[#254b36]"
+            aria-hidden="true"
+          />
+          <p className="text-xs font-medium tracking-tight text-[#254b36]">Checking personalization access…</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <main
