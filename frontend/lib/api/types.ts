@@ -89,3 +89,34 @@ export interface ApiErrorResponse {
   detail?: string | ApiValidationErrorDetail[];
   message?: string;
 }
+
+// POST /evaluate/ — one endpoint for every scan. The client sends what it
+// has (a barcode, a camera frame, or a label the user confirmed); the backend
+// resolves the item, then produces the verdict.
+export type EvaluateRequest =
+  | { source: "barcode"; barcode: string }
+  | { source: "image"; image: string } // base64 JPEG, no data: URL prefix
+  | { source: "label"; label: string };
+
+export interface EvaluatedItem {
+  name: string;
+  brand?: string | null;
+  is_packaged: boolean;
+  resolved_by: "barcode" | "vision" | "label";
+}
+
+export type VerdictLevel = "good" | "caution" | "avoid";
+
+export interface Verdict {
+  level: VerdictLevel;
+  headline: string;
+  spoken: string;
+  reasons: string[];
+}
+
+export type EvaluateResponse =
+  | { status: "ok"; item: EvaluatedItem; verdict: Verdict }
+  // Barcode not found in the SKU DB or Open Food Facts: client resends a frame.
+  | { status: "needs_image"; message?: string }
+  // Vision wasn't sure: client asks "Is this X?" before any verdict.
+  | { status: "low_confidence"; guess: string; confidence: number };
