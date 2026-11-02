@@ -4,7 +4,7 @@ import { isTokenValid } from "@/lib/auth/token";
 const PROTECTED_ROUTES = [
   "/dashboard",
   "/cart",
-  "/chat",
+  "/recipes",
   "/profile",
   "/onboarding",
 ];
