@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { BrandLogo } from "@/components/ui/brand-logo";
 import { useAuthStore, useOnboardingStore, type OnboardingFormField } from "@/lib/stores";
+import { diets, goals } from "@/lib/preferences";
 import styles from "./onboarding.module.css";
 
 type Errors = Partial<Record<OnboardingFormField, string>>;
@@ -13,22 +14,6 @@ const steps = [
   { label: "About you", icon: "person" },
   { label: "Your goal", icon: "target" },
   { label: "Your plate", icon: "plate" },
-];
-
-const goals = [
-  ["balance", "Eat more balanced", "A little more variety. A little more goodness."],
-  ["energy", "Feel more energized", "Find food that keeps up with your everyday."],
-  ["weight", "Manage my weight", "Make more intentional choices, at my own pace."],
-];
-
-const diets = [
-  "Vegetarian",
-  "Non-vegetarian",
-  "Vegan",
-  "Pescatarian",
-  "Flexitarian",
-  "No preference",
-  "Other",
 ];
 
 const titles = [
