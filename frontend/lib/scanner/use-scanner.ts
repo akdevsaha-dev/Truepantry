@@ -1,7 +1,7 @@
 import axios from "axios";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { evaluateApi, formatApiError } from "@/lib/api";
-import type { EvaluateRequest, EvaluatedItem, Verdict } from "@/lib/api";
+import type { EvaluateRequest, Product, Verdict } from "@/lib/api";
 import { createBarcodeReader, type BarcodeReader } from "./barcode";
 import { motion, sharpness, toGray } from "./frame-quality";
 
@@ -24,7 +24,7 @@ export function useScanner() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [phase, setPhase] = useState<ScanPhase>("idle");
   const [hint, setHint] = useState<ScanHint>("looking");
-  const [result, setResult] = useState<{ item: EvaluatedItem; verdict: Verdict } | null>(null);
+  const [result, setResult] = useState<{ item: Product; verdict: Verdict } | null>(null);
   const [guess, setGuess] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -49,16 +49,6 @@ export function useScanner() {
     setPhase(next);
   }, []);
 
-  const stopSpeech = () => {
-    if (typeof window !== "undefined" && "speechSynthesis" in window) window.speechSynthesis.cancel();
-  };
-
-  const speak = (text: string) => {
-    if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
-    window.speechSynthesis.cancel();
-    window.speechSynthesis.speak(new SpeechSynthesisUtterance(text));
-  };
-
   const clearTimer = () => {
     if (timer.current) clearTimeout(timer.current);
     timer.current = null;
@@ -81,7 +71,6 @@ export function useScanner() {
         if (response.status === "ok") {
           setResult({ item: response.item, verdict: response.verdict });
           go("result");
-          speak(response.verdict.spoken);
         } else if (response.status === "needs_image") {
           // Barcode unknown to every database: identify from the picture instead.
           if (request.source === "barcode" && sendBestFrame()) return;
@@ -192,7 +181,6 @@ export function useScanner() {
 
   const resetScan = useCallback(() => {
     abort.current?.abort();
-    stopSpeech();
     clearTimer();
     frames.current = [];
     prevGray.current = null;
@@ -231,7 +219,7 @@ export function useScanner() {
       rescan();
     } catch {
       if (!alive.current) return;
-      setError("Camera unavailable. Allow camera access in your browser, or try the sample scan.");
+      setError("Camera unavailable. Allow camera access in your browser and try again.");
       go("idle");
     }
   }, [go, rescan]);
@@ -265,7 +253,6 @@ export function useScanner() {
       alive.current = false;
       abort.current?.abort();
       clearTimer();
-      stopSpeech();
       stream.current?.getTracks().forEach((t) => t.stop());
     };
   }, []);

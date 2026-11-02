@@ -90,19 +90,23 @@ export interface ApiErrorResponse {
   message?: string;
 }
 
-// POST /evaluate/ — one endpoint for every scan. The client sends what it
-// has (a barcode, a camera frame, or a label the user confirmed); the backend
-// resolves the item, then produces the verdict.
+// POST /evaluate — one endpoint for every scan. The client sends what it
+// has (a barcode, a camera frame, or a label the user confirmed).
 export type EvaluateRequest =
   | { source: "barcode"; barcode: string }
   | { source: "image"; image: string } // base64 JPEG, no data: URL prefix
   | { source: "label"; label: string };
 
-export interface EvaluatedItem {
+export interface Product {
+  id: string;
   name: string;
-  brand?: string | null;
+  brand: string | null;
   is_packaged: boolean;
-  resolved_by: "barcode" | "vision" | "label";
+  image_url: string | null;
+  nutri_grade: string | null;
+  eco_grade: string | null;
+  nova_group: number | null;
+  scores_source: "off" | "llm" | null;
 }
 
 export type VerdictLevel = "good" | "caution" | "avoid";
@@ -115,8 +119,41 @@ export interface Verdict {
 }
 
 export type EvaluateResponse =
-  | { status: "ok"; item: EvaluatedItem; verdict: Verdict }
-  // Barcode not found in the SKU DB or Open Food Facts: client resends a frame.
+  | { status: "ok"; item: Product; verdict: Verdict }
+  // Barcode not found anywhere: the client sends a camera frame instead.
   | { status: "needs_image"; message?: string }
-  // Vision wasn't sure: client asks "Is this X?" before any verdict.
+  // Vision wasn't sure: the client asks "Is this X?" first.
   | { status: "low_confidence"; guess: string; confidence: number };
+
+export interface CartItem {
+  id: string;
+  quantity: number;
+  verdict: Verdict;
+  added_at: string;
+  products: Product;
+}
+
+export interface RecipeIngredient {
+  name: string;
+  amount: string;
+  product_id: string | null;
+  is_staple: boolean;
+}
+
+export interface Recipe {
+  id: string;
+  title: string;
+  description: string | null;
+  servings: number | null;
+  prep_minutes: number | null;
+  cook_minutes: number | null;
+  ingredients: RecipeIngredient[];
+  steps: string[];
+  is_favorite: boolean;
+  created_at: string;
+}
+
+export interface ChatMessage {
+  role: "user" | "assistant";
+  text: string;
+}
