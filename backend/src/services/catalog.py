@@ -114,17 +114,6 @@ def get_cart_items(cart_id: str) -> list[dict]:
     return res.data
 
 
-def cart_totals(cart_id: str) -> dict:
-    try:
-        res = supabase.table("cart_items").select("quantity").eq("cart_id", cart_id).execute()
-    except APIError as e:
-        raise db_error(e)
-    return {
-        "distinct_items": len(res.data),
-        "total_quantity": sum(row["quantity"] for row in res.data),
-    }
-
-
 def add_to_cart(cart_id: str, product_id: str, make_verdict) -> dict:
     """Adds one of a product to the cart. A repeat scan bumps the quantity and reuses the saved
     verdict, so make_verdict (an LLM call) only runs the first time."""

@@ -1,6 +1,7 @@
 import base64
 import binascii
 import json
+import logging
 
 import httpx
 from fastapi import HTTPException
@@ -20,8 +21,13 @@ from src.llm.prompts import (
 )
 
 settings = get_settings()
+logger = logging.getLogger(__name__)
 
 GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models"
+
+# Gemini models get overloaded at random (503 "high demand"). When one is busy we try the
+# next, so a scan only fails if all of them are down at once.
+FALLBACK_MODELS = ["gemini-3.5-flash-lite", "gemini-flash-lite-latest"]
 
 
 def identify_image(image_b64: str) -> dict:
@@ -59,8 +65,8 @@ def chat_about_recipe(recipe: dict, profile: dict, messages: list[dict]) -> str:
 
 
 def call_gemini(parts: list, schema: dict) -> dict:
-    if not settings.gemini_api_key:
-        raise HTTPException(status_code=500, detail="GEMINI_API_KEY is not set")
+    if not settings.google_api_key:
+        raise HTTPException(status_code=500, detail="GOOGLE_API_KEY is not set")
 
     body = {
         "contents": [{"parts": parts}],
@@ -69,17 +75,32 @@ def call_gemini(parts: list, schema: dict) -> dict:
             "responseSchema": schema,
         },
     }
-    try:
-        res = httpx.post(
-            f"{GEMINI_URL}/{settings.gemini_model}:generateContent",
-            headers={"x-goog-api-key": settings.gemini_api_key},
-            json=body,
-            timeout=25,
-        )
-        res.raise_for_status()
-        text = res.json()["candidates"][0]["content"]["parts"][0]["text"]
-        return json.loads(text)
-    except (httpx.HTTPError, KeyError, IndexError, ValueError):
-        raise HTTPException(
-            status_code=502, detail="The AI service failed, please try again"
-        )
+    models = [settings.gemini_model] + [m for m in FALLBACK_MODELS if m != settings.gemini_model]
+
+    for model in models:
+        try:
+            res = httpx.post(
+                f"{GEMINI_URL}/{model}:generateContent",
+                headers={"x-goog-api-key": settings.google_api_key},
+                json=body,
+                timeout=12,
+            )
+        except httpx.HTTPError as e:
+            logger.warning("Gemini %s request failed, trying the next model: %s", model, e)
+            continue
+
+        if res.status_code in (401, 403):
+            # a setup problem, another model won't help
+            logger.error("Gemini rejected the API key: %s", res.text)
+            raise HTTPException(status_code=500, detail="The AI service is not set up: GOOGLE_API_KEY is invalid")
+        if res.status_code != 200:
+            logger.warning("Gemini %s returned %s, trying the next model", model, res.status_code)
+            continue
+
+        try:
+            text = res.json()["candidates"][0]["content"]["parts"][0]["text"]
+            return json.loads(text)
+        except (KeyError, IndexError, ValueError):
+            logger.warning("Gemini %s sent an unexpected response: %s", model, res.text[:300])
+
+    raise HTTPException(status_code=502, detail="The AI service is busy right now, please try again")

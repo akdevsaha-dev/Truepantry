@@ -1,7 +1,7 @@
 [project]
 name = "backend"
 version = "0.1.0"
-description = "Add your description here"
+description = "TruePantry API: scan groceries, get a personal verdict, cook from your cart"
 readme = "README.md"
 authors = [
     { name = "Akdev Saha", email = "109981034+akdevsaha-dev@users.noreply.github.com" }
@@ -16,13 +16,6 @@ dependencies = [
     "supabase>=2.32.0",
     "uvicorn>=0.54.0",
 ]
-
-[project.scripts]
-backend = "backend:main"
-
-[build-system]
-requires = ["uv_build>=0.12.8,<0.13.0"]
-build-backend = "uv_build"
 
 [tool.uv]
 package = false

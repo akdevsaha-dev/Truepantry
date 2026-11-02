@@ -41,6 +41,7 @@ def get_current_user(req: Request) -> dict:
     )
 
     if not res.data:
-        raise HTTPException(status_code=404, detail="User not found")
+        # the account was deleted after the token was issued
+        raise HTTPException(status_code=401, detail="User not found")
 
     return res.data[0]

@@ -12,18 +12,14 @@ supabase = get_supabase_client()
 @router.post("")
 def signup(data: SignupValidation, response: Response):
     try:
-        existing_user = (
-            supabase.table("users")
-            .select("email, username")
-            .or_(f"email.eq.{data.email}, username.eq.{data.username}")
-            .execute()
-        )
+        # two plain lookups, so user input is never pasted into a filter string
+        email_taken = supabase.table("users").select("id").eq("email", data.email).execute()
+        if email_taken.data:
+            raise HTTPException(status_code=409, detail="Email already registered")
 
-        for u in existing_user.data:
-            if u["email"] == data.email:
-                raise HTTPException(status_code=409, detail="Email already registered")
-            if u["username"] == data.username:
-                raise HTTPException(status_code=409, detail="Username already taken")
+        username_taken = supabase.table("users").select("id").eq("username", data.username).execute()
+        if username_taken.data:
+            raise HTTPException(status_code=409, detail="Username already taken")
 
         hashed_password = get_hashed_password(data.password)
 
