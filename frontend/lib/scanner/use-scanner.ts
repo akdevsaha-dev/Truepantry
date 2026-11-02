@@ -24,7 +24,7 @@ export function useScanner() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [phase, setPhase] = useState<ScanPhase>("idle");
   const [hint, setHint] = useState<ScanHint>("looking");
-  const [result, setResult] = useState<{ item: Product; verdict: Verdict } | null>(null);
+  const [result, setResult] = useState<{ item: Product; verdict: Verdict; quantity: number } | null>(null);
   const [guess, setGuess] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -69,7 +69,7 @@ export function useScanner() {
         if (controller.signal.aborted || !alive.current) return;
 
         if (response.status === "ok") {
-          setResult({ item: response.item, verdict: response.verdict });
+          setResult({ item: response.item, verdict: response.verdict, quantity: response.quantity });
           go("result");
         } else if (response.status === "needs_image") {
           // Barcode unknown to every database: identify from the picture instead.

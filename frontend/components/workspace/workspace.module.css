@@ -88,3 +88,6 @@
 .recipeList li.active, .recipeList li:hover { background: #e4ebdc; }
 .recipeList li > button:first-child { flex: 1; display: flex; align-items: center; gap: 6px; text-align: left; background: transparent; border: 0; padding: 10px; font-size: 12px; color: #45454a; }
 .recipeList .iconButton { width: 36px; height: 36px; }
+.scores { font-size: 11px; color: var(--muted); margin-top: 6px; }
+.scores span { font-style: italic; }
+.inCart { font-size: 12px; font-weight: 550; margin-top: 12px; }

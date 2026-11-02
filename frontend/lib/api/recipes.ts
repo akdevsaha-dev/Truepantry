@@ -2,7 +2,7 @@ import { apiClient } from "./client";
 import type { ChatMessage, Recipe } from "./types";
 
 // Recipe generation and chat both wait on the LLM, so they get a longer timeout.
-const LLM_TIMEOUT = 40000;
+const LLM_TIMEOUT = 60000;
 
 export const recipesApi = {
   async list(): Promise<Recipe[]> {

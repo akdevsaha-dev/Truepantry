@@ -1,38 +1,38 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
 import { ArrowRight, Minus, Plus, Scan, ShoppingBag, Trash } from '@phosphor-icons/react';
 import { cartApi, formatApiError, type CartItem } from '@/lib/api';
-import { PageHeading, ProductImage, VerdictBadge } from './ui';
+import { PageHeading, ProductImage, Scores, VerdictBadge } from './ui';
 import { useWorkspace } from './workspace';
 import s from './workspace.module.css';
 
 export function Cart() {
-  const { cart, cartLoaded, refreshCart, openScanner, toast } = useWorkspace();
-  const [busy, setBusy] = useState(false);
+  const { cart, setCart, cartLoaded, refreshCart, openScanner, toast } = useWorkspace();
 
   const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
   const goodFits = cart.filter((item) => item.verdict.level === 'good').length;
 
-  async function update(action: () => Promise<void>) {
-    setBusy(true);
+  // Optimistic updates: change the screen first, then tell the server. If the request
+  // fails, reload the cart from the server so the screen shows the real state again.
+  async function save(request: Promise<void>) {
     try {
-      await action();
-      await refreshCart();
+      await request;
     } catch (err) {
       toast(formatApiError(err, 'Could not update your cart.'));
+      refreshCart();
     }
-    setBusy(false);
   }
 
   function changeQuantity(item: CartItem, quantity: number) {
     if (quantity < 1) return remove(item);
-    update(() => cartApi.setQuantity(item.id, quantity));
+    setCart(cart.map((i) => (i.id === item.id ? { ...i, quantity } : i)));
+    save(cartApi.setQuantity(item.id, quantity));
   }
 
   function remove(item: CartItem) {
-    update(() => cartApi.remove(item.id));
+    setCart(cart.filter((i) => i.id !== item.id));
+    save(cartApi.remove(item.id));
   }
 
   return (
@@ -75,12 +75,12 @@ export function Cart() {
                 <small>{item.products.brand ?? 'Fresh'}</small>
                 <h3>{item.products.name}</h3>
                 <span>{item.verdict.headline}</span>
+                <Scores product={item.products} />
                 <VerdictBadge level={item.verdict.level} />
               </div>
               <div className={s.quantity}>
                 <button
                   aria-label={`Remove one ${item.products.name}`}
-                  disabled={busy}
                   onClick={() => changeQuantity(item, item.quantity - 1)}
                 >
                   <Minus size={14} />
@@ -88,7 +88,6 @@ export function Cart() {
                 <span aria-live="polite">{item.quantity}</span>
                 <button
                   aria-label={`Add one ${item.products.name}`}
-                  disabled={busy}
                   onClick={() => changeQuantity(item, item.quantity + 1)}
                 >
                   <Plus size={14} />
@@ -97,7 +96,6 @@ export function Cart() {
               <button
                 className={s.iconButton}
                 aria-label={`Remove ${item.products.name} from cart`}
-                disabled={busy}
                 onClick={() => remove(item)}
               >
                 <Trash size={17} />

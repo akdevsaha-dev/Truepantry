@@ -15,8 +15,9 @@ export function Recipes() {
   const user = useAuthStore((state) => state.user);
 
   const [recipes, setRecipes] = useState<Recipe[]>([]);
-  const [selected, setSelected] = useState<Recipe | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const selected = recipes.find((r) => r.id === selectedId) ?? null;
   const [generating, setGenerating] = useState(false);
 
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -29,7 +30,7 @@ export function Recipes() {
       .list()
       .then((list) => {
         setRecipes(list);
-        setSelected(list[0] ?? null);
+        setSelectedId(list[0]?.id ?? null);
       })
       .catch((err) => toast(formatApiError(err, 'Could not load your recipes.')))
       .finally(() => setLoading(false));
@@ -40,7 +41,7 @@ export function Recipes() {
   }, [messages, thinking]);
 
   function select(recipe: Recipe | null) {
-    setSelected(recipe);
+    setSelectedId(recipe?.id ?? null);
     setMessages([]);
     setInput('');
   }
@@ -58,23 +59,28 @@ export function Recipes() {
     setGenerating(false);
   }
 
+  // Favorite and delete update the list right away and undo the change if the server says no.
   async function toggleFavorite(recipe: Recipe) {
+    const flip = (list: Recipe[]) =>
+      list.map((r) => (r.id === recipe.id ? { ...r, is_favorite: !r.is_favorite } : r));
+    setRecipes(flip);
     try {
-      const updated = await recipesApi.setFavorite(recipe.id, !recipe.is_favorite);
-      setRecipes((list) => list.map((r) => (r.id === updated.id ? updated : r)));
-      if (selected?.id === updated.id) setSelected(updated);
+      await recipesApi.setFavorite(recipe.id, !recipe.is_favorite);
     } catch (err) {
+      setRecipes(flip);
       toast(formatApiError(err, 'Could not update this recipe.'));
     }
   }
 
   async function remove(recipe: Recipe) {
+    const before = recipes;
+    const rest = recipes.filter((r) => r.id !== recipe.id);
+    setRecipes(rest);
+    if (selectedId === recipe.id) select(rest[0] ?? null);
     try {
       await recipesApi.remove(recipe.id);
-      const rest = recipes.filter((r) => r.id !== recipe.id);
-      setRecipes(rest);
-      if (selected?.id === recipe.id) select(rest[0] ?? null);
     } catch (err) {
+      setRecipes(before);
       toast(formatApiError(err, 'Could not delete this recipe.'));
     }
   }
@@ -91,6 +97,9 @@ export function Recipes() {
       const reply = await recipesApi.chat(selected.id, conversation.slice(-30));
       setMessages([...conversation, { role: 'assistant', text: reply }]);
     } catch (err) {
+      // take the question back out and put it in the box so it can be resent
+      setMessages(messages);
+      setInput(text);
       toast(formatApiError(err, 'Could not get an answer, please try again.'));
     }
     setThinking(false);
@@ -154,8 +163,8 @@ export function Recipes() {
 
                 <h3>Ingredients</h3>
                 <ul>
-                  {selected.ingredients.map((ingredient) => (
-                    <li key={ingredient.name}>
+                  {selected.ingredients.map((ingredient, i) => (
+                    <li key={i}>
                       {ingredient.amount} {ingredient.name}
                       {ingredient.product_id && <span className={s.fromCart}> · from your cart</span>}
                     </li>

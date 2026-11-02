@@ -51,3 +51,20 @@ export function ProductImage({ product, small = false }: { product: Product; sma
 export function VerdictBadge({ level }: { level: VerdictLevel }) {
   return <span className={`${s.verdictBadge} ${verdictClasses[level]}`}>{verdictLabels[level]}</span>;
 }
+
+// Nutri-Score and Eco-Score go from a (best) to e, NOVA from 1 (unprocessed) to 4 (ultra-processed).
+export function Scores({ product }: { product: Product }) {
+  const scores = [
+    product.nutri_grade && `Nutri-Score ${product.nutri_grade.toUpperCase()}`,
+    product.eco_grade && `Eco-Score ${product.eco_grade.toUpperCase()}`,
+    product.nova_group && `NOVA ${product.nova_group}`,
+  ].filter(Boolean);
+  if (!scores.length) return null;
+
+  return (
+    <p className={s.scores}>
+      {scores.join(' · ')}
+      {product.scores_source === 'llm' && <span> (estimated)</span>}
+    </p>
+  );
+}

@@ -12,6 +12,7 @@ import s from './workspace.module.css';
 
 type WorkspaceState = {
   cart: CartItem[];
+  setCart: (cart: CartItem[]) => void;
   cartLoaded: boolean;
   refreshCart: () => Promise<void>;
   openScanner: () => void;
@@ -59,6 +60,11 @@ export function Workspace({ children }: { children: React.ReactNode }) {
         router.replace('/sign-in?from=' + encodeURIComponent(path));
         return;
       }
+      // verdicts and recipes are personalised, so the profile has to exist first
+      if (!currentUser.is_onboarded) {
+        router.replace('/onboarding');
+        return;
+      }
       fetchOnboarding();
       refreshCart();
     });
@@ -72,7 +78,7 @@ export function Workspace({ children }: { children: React.ReactNode }) {
     return () => clearTimeout(timeout);
   }, [notice]);
 
-  if (!isInitialized || !isAuthenticated || !user) {
+  if (!isInitialized || !isAuthenticated || !user?.is_onboarded) {
     return (
       <div className="flex h-[100dvh] w-full items-center justify-center bg-[#fafbf9]">
         <p className="text-xs font-medium text-[#686c67]">Checking access…</p>
@@ -84,7 +90,7 @@ export function Workspace({ children }: { children: React.ReactNode }) {
 
   return (
     <WorkspaceContext.Provider
-      value={{ cart, cartLoaded, refreshCart, openScanner: () => setScanning(true), toast: setNotice }}
+      value={{ cart, setCart, cartLoaded, refreshCart, openScanner: () => setScanning(true), toast: setNotice }}
     >
       <div className={s.workspace}>
         <aside className={s.sidebar}>

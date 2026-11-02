@@ -70,7 +70,6 @@ export interface GoalStepPayload {
 export interface PreferencesStepPayload {
   diet: string;
   other_diet?: string | null;
-  otherDiet?: string | null;
 }
 
 export interface CompleteOnboardingResponse {
@@ -119,7 +118,7 @@ export interface Verdict {
 }
 
 export type EvaluateResponse =
-  | { status: "ok"; item: Product; verdict: Verdict }
+  | { status: "ok"; item: Product; verdict: Verdict; quantity: number }
   // Barcode not found anywhere: the client sends a camera frame instead.
   | { status: "needs_image"; message?: string }
   // Vision wasn't sure: the client asks "Is this X?" first.

@@ -3,7 +3,7 @@
 import { useEffect, useRef } from 'react';
 import { ArrowCounterClockwise, Barcode, Camera, Scan, X } from '@phosphor-icons/react';
 import { useScanner, type ScanHint } from '@/lib/scanner/use-scanner';
-import { VerdictBadge, verdictClasses } from './ui';
+import { Scores, VerdictBadge, verdictClasses } from './ui';
 import { useWorkspace } from './workspace';
 import s from './workspace.module.css';
 
@@ -75,6 +75,7 @@ export function Scanner({ close }: { close: () => void }) {
             {result.item.brand && <small> · {result.item.brand}</small>}
           </h3>
           <p className={s.verdictHeadline}>{result.verdict.headline}</p>
+          <Scores product={result.item} />
           {result.verdict.reasons.length > 0 && (
             <ul>
               {result.verdict.reasons.map((reason) => (
@@ -82,6 +83,7 @@ export function Scanner({ close }: { close: () => void }) {
               ))}
             </ul>
           )}
+          <p className={s.inCart}>In your cart: {result.quantity}</p>
         </section>
       )}
 
