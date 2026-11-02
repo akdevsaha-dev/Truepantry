@@ -12,13 +12,12 @@ type Errors = Partial<Record<Field, string>>;
 export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
   const router = useRouter();
   const signup = mode === "sign-up";
-  const { signIn, signUp, isLoading, user, checkAuth, clearError } = useAuthStore();
+  const { signIn, signUp, isLoading, checkAuth, clearError } = useAuthStore();
   const [isNavigating, setIsNavigating] = useState(false);
   const [visible, setVisible] = useState(false);
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState<Errors>({});
   const [notice, setNotice] = useState("");
-  const [success, setSuccess] = useState(false);
   const messageRef = useRef<HTMLDivElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
 
@@ -101,52 +100,6 @@ export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
     } finally {
       requestAnimationFrame(() => messageRef.current?.focus());
     }
-  }
-
-  if (success) {
-    const isOnboarded = user?.is_onboarded ?? false;
-
-    return (
-      <div
-        className="mx-auto w-full max-w-[390px] animate-[enter_0.65s_cubic-bezier(0.2,0.7,0.2,1)_both] max-[800px]:max-w-[420px]"
-        ref={messageRef}
-        tabIndex={-1}
-        role="status"
-      >
-        <span
-          className="mb-4 grid size-11 place-items-center rounded-[14px] border border-[#dce5d9] bg-[#f0f5ed] text-[#254b36]"
-          aria-hidden="true"
-        >
-          ✓
-        </span>
-        <h1 className="m-0 text-[clamp(26px,2.4vw,34px)] font-[550] leading-[1.15] tracking-[-0.055em] text-[#171717] max-[800px]:text-[30px] max-[380px]:text-[26px]">
-          {signup ? "You’re on the list." : "You’re back in."}
-        </h1>
-        <p className="my-2.5 mb-5 text-[14px] leading-[1.6] text-[#686c67] whitespace-pre-line">
-          {signup
-            ? "Your truePantry account is ready. Let’s personalize your grocery experience."
-            : "You’ve signed in successfully. A little more confidence for your next grocery shop."}
-        </p>
-
-        <div className="flex flex-col gap-2.5">
-          <Link
-            className="mt-1 flex min-h-[46px] w-full cursor-pointer items-center justify-center gap-3 rounded-[10px] border border-[#254b36] bg-[#254b36] text-sm font-[550] text-white transition-[background,transform,box-shadow] duration-200 hover:bg-[#183b29] hover:shadow-[0_4px_12px_#254b3625] active:scale-[0.99]"
-            href={isOnboarded ? "/dashboard" : "/onboarding"}
-          >
-            {isOnboarded ? "Open my dashboard" : "Continue to personalization"} <span aria-hidden="true">↗</span>
-          </Link>
-
-          {!isOnboarded && (
-            <Link
-              className="flex min-h-[40px] w-full cursor-pointer items-center justify-center gap-2 rounded-[10px] border border-[#d5d8d1] bg-white text-xs font-[500] text-[#686c67] transition-colors hover:bg-[#f8faf7] hover:text-[#171717]"
-              href="/dashboard"
-            >
-              Skip setup for now
-            </Link>
-          )}
-        </div>
-      </div>
-    );
   }
 
   return (

@@ -113,7 +113,6 @@ test("onboarding savePreferencesStep invokes backend and advances to review", as
     assert.deepEqual(sentPayload, {
       diet: "Other",
       other_diet: "Gluten-free plant based",
-      otherDiet: "Gluten-free plant based",
     });
     assert.equal(useOnboardingStore.getState().step, 3);
   } finally {

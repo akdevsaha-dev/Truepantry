@@ -146,7 +146,6 @@ export const useOnboardingStore = create<OnboardingStoreState>((set, get) => ({
       await onboardingApi.updatePreferences({
         diet: profile.diet,
         other_diet: profile.diet === "Other" ? profile.otherDiet.trim() : null,
-        otherDiet: profile.diet === "Other" ? profile.otherDiet.trim() : null,
       });
 
       set({
