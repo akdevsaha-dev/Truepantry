@@ -182,3 +182,40 @@ Rules:
 - Never add other main ingredients (meat, dairy, vegetables, etc.) that are not in the cart.
 - Respect the shopper's diet strictly. Skip cart items that break it.
 - Steps are short, clear and in order. nutrition is a per-serving estimate."""
+
+
+CHAT_SCHEMA = {
+    "type": "OBJECT",
+    "properties": {"reply": {"type": "STRING"}},
+    "required": ["reply"],
+}
+
+
+def chat_prompt(recipe: dict, profile: dict, messages: list[dict]) -> str:
+    ingredients = "\n".join(f"- {i['amount']} {i['name']}" for i in recipe["ingredients"])
+    steps = "\n".join(f"{n}. {step}" for n, step in enumerate(recipe["steps"], start=1))
+    conversation = "\n".join(f"{m['role']}: {m['text']}" for m in messages)
+
+    return f"""You are TruePantry, a friendly home cook. Answer the shopper's questions about this recipe.
+
+Recipe: {recipe['title']}
+{recipe['description'] or ''}
+Servings: {recipe['servings']}
+
+Ingredients:
+{ingredients}
+
+Steps:
+{steps}
+
+Shopper:
+- goal: {profile.get('goal') or 'not set'}
+- diet: {profile.get('other_diet') or profile.get('diet') or 'not set'}
+
+Conversation so far:
+{conversation}
+
+Rules:
+- Reply to the last user message in a few short, plain sentences.
+- Suggest swaps that respect the shopper's diet.
+- If the question has nothing to do with food or cooking, gently steer back to the recipe."""

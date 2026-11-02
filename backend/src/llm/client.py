@@ -7,11 +7,13 @@ from fastapi import HTTPException
 
 from src.core.config import get_settings
 from src.llm.prompts import (
+    CHAT_SCHEMA,
     IDENTIFY_PROMPT,
     IDENTIFY_SCHEMA,
     RECIPE_SCHEMA,
     SCORES_SCHEMA,
     VERDICT_SCHEMA,
+    chat_prompt,
     recipe_prompt,
     scores_prompt,
     verdict_prompt,
@@ -49,6 +51,11 @@ def estimate_scores(item: dict) -> dict:
 def generate_recipe(items: list[dict], profile: dict, servings: int | None) -> dict:
     """Returns a recipe built from the cart items (see RECIPE_SCHEMA)."""
     return call_gemini([{"text": recipe_prompt(items, profile, servings)}], RECIPE_SCHEMA)
+
+
+def chat_about_recipe(recipe: dict, profile: dict, messages: list[dict]) -> str:
+    """Answers the last message in the conversation about this recipe."""
+    return call_gemini([{"text": chat_prompt(recipe, profile, messages)}], CHAT_SCHEMA)["reply"]
 
 
 def call_gemini(parts: list, schema: dict) -> dict:

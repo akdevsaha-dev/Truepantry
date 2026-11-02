@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Literal, Optional
 from pydantic import BaseModel, Field
 
 
@@ -11,28 +11,11 @@ class FavoriteRequest(BaseModel):
     is_favorite: bool
 
 
-class RecipeIngredient(BaseModel):
-    name: str
-    amount: str
-    product_id: Optional[str] = None  # set when it comes from a cart item
-    is_staple: bool
+class ChatMessage(BaseModel):
+    role: Literal["user", "assistant"]
+    text: str = Field(min_length=1, max_length=1500)
 
 
-class Recipe(BaseModel):
-    id: str
-    cart_id: Optional[str] = None
-    title: str
-    description: Optional[str] = None
-    servings: Optional[int] = None
-    prep_minutes: Optional[int] = None
-    cook_minutes: Optional[int] = None
-    ingredients: list[RecipeIngredient]
-    steps: list[str]
-    nutrition: dict = {}
-    is_favorite: bool
-    created_at: str
-
-
-class GenerateRecipeResponse(BaseModel):
-    recipe: Recipe
-    cached: bool  # true when a saved recipe for the same cart was reused, no LLM call
+class ChatRequest(BaseModel):
+    # the whole conversation so far, the last message is the user's new question
+    messages: list[ChatMessage] = Field(min_length=1, max_length=30)
